@@ -1,0 +1,59 @@
+{
+  "name": "@fairchild/table-core",
+  "version": "0.1.0",
+  "description": "The framework-free core of Lede's data table: table types, selection algebra and a server row model with caching, cancellation and cursor chains.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node scripts/declarations.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "pretest": "npm run build",
+    "test": "node --test --experimental-strip-types test/*.test.ts",
+    "prepack": "npm run build",
+    "prepare": "npm run build",
+    "check": "npm run typecheck && npm run build && npm test && npm run smoke",
+    "smoke": "node scripts/smoke.mjs",
+    "docs": "npm run build && node scripts/docs-vendor.mjs",
+    "docs:serve": "npm run docs && node scripts/serve-docs.mjs"
+  },
+  "keywords": [
+    "data-table",
+    "headless",
+    "server-side",
+    "pagination",
+    "selection",
+    "lede"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fairchild/table-core.git"
+  },
+  "homepage": "https://fairchild.github.io/table-core/",
+  "bugs": "https://github.com/fairchild/table-core/issues",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "22.18.0",
+    "typescript": "5.9.3"
+  }
+}

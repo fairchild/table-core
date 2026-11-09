@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guide · @fairchild/table-core</title>
+  <meta name="description" content="How to use @fairchild/table-core: your server's contract, paging modes, reading the state, counts, failures, selection, React and testing.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="canonical" href="https://fairchild.github.io/table-core/guide.html">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://fairchild.github.io/table-core/guide.html">
+  <meta property="og:title" content="Guide · @fairchild/table-core">
+  <meta property="og:description" content="How to use @fairchild/table-core: your server's contract, paging modes, reading the state, counts, failures, selection, React and testing.">
+  <meta property="og:image" content="https://fairchild.github.io/table-core/assets/og.png">
+  <meta property="og:image:alt" content="@fairchild/table-core: loads table rows from a server one page at a time and keeps the count right.">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="assets/style.css">
+  <script type="module" src="assets/copy.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="inner">
+      <a class="brand" href="./">@fairchild/table-core <span>by Lede</span></a>
+      <nav class="site-nav" aria-label="Documentation">
+        <ul>
+          <li><a href="./">Overview</a></li>
+          <li><a href="guide.html" aria-current="page">Guide</a></li>
+          <li><a href="api.html">API</a></li>
+          <li><a href="https://github.com/fairchild/table-core">GitHub</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page with-toc">
+    <nav class="toc toc-wide" aria-labelledby="toc-title">
+      <h2 id="toc-title">On this page</h2>
+      <ol>
+        <li><a href="#quick-start">Quick start</a></li>
+        <li><a href="#server">Your server's contract</a></li>
+        <li><a href="#paging">Load more or pages</a></li>
+        <li><a href="#state">Reading the state</a></li>
+        <li><a href="#cache">Views, caching and staleness</a></li>
+        <li><a href="#counts">Counts</a></li>
+        <li><a href="#failures">Failures and retry</a></li>
+        <li><a href="#selection">Selection</a></li>
+        <li><a href="#react">Using it from React</a></li>
+        <li><a href="#testing">Testing your integration</a></li>
+        <li><a href="#guarantees">What the tests cover</a></li>
+      </ol>
+    </nav>
+    <nav class="toc toc-narrow" aria-labelledby="toc-title-narrow">
+      <details>
+        <summary><h2 id="toc-title-narrow">On this page</h2></summary>
+        <ol>
+          <li><a href="#quick-start">Quick start</a></li>
+          <li><a href="#server">Your server's contract</a></li>
+          <li><a href="#paging">Load more or pages</a></li>
+          <li><a href="#state">Reading the state</a></li>
+          <li><a href="#cache">Views, caching and staleness</a></li>
+          <li><a href="#counts">Counts</a></li>
+          <li><a href="#failures">Failures and retry</a></li>
+          <li><a href="#selection">Selection</a></li>
+          <li><a href="#react">Using it from React</a></li>
+          <li><a href="#testing">Testing your integration</a></li>
+          <li><a href="#guarantees">What the tests cover</a></li>
+        </ol>
+      </details>
+    </nav>
+
+    <main id="main" class="prose">
+      <h1>Guide</h1>
+      <p class="lede">How to connect the store to your server and your UI. It covers what your server should return, what the store gives back and how counts, failures and selection work.</p>
+
+      <h2 id="quick-start">Quick start</h2>
+      <pre tabindex="0"><code>npm install @fairchild/table-core</code></pre>
+      <p>The package needs only <code>AbortController</code> and <code>DOMException</code>, which every browser and Node.js provide. To type-check against it, include the DOM library or <code>@types/node</code>.</p>
+      <p>Below is a complete client. It is <a href="examples/client.js"><code>examples/client.js</code></a>, which the docs test runs against <a href="examples/server.js">a pretend server</a> and the <a href="./#try">live demo</a> is built on. Your server answers two URLs:</p>
+      <pre tabindex="0"><code>GET /api/items?sort=due&amp;dir=ascending
+              &amp;offset=0&amp;limit=50
+→ { rows: Item[],
+    total?: number | { atLeast: number },
+    nextCursor?: string | null }
+
+GET /api/items/count?sort=due&amp;dir=ascending
+→ 310   (a plain number)</code></pre>
+      <pre tabindex="0" data-source="examples/client.js"><code>// A complete client: a store for /api/items, the
+// query string it sends, and the count it shows.
+// test/docs.test.ts runs this file against server.js,
+// and the live demo on the landing page is built on it.
+import { ServerRowsStore } from '@fairchild/table-core';
+
+/** The view as a query string. Send it as you like. */
+export function query(view, offset, limit) {
+  const params = new URLSearchParams();
+  const sort = view.sort[0];
+  if (sort) {
+    params.set('sort', sort.columnId);
+    params.set('dir', sort.direction);
+  }
+  if (offset !== undefined) {
+    params.set('offset', String(offset));
+    params.set('limit', String(limit));
+  }
+  return params.toString();
+}
+
+// fetch() resolves on a 500 too. Check `ok`, or an
+// error body is taken for an answer.
+async function json(res) {
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+export function createItemsStore({
+  fetch = globalThis.fetch,
+  pageSize = 50,
+} = {}) {
+  const options = {
+    view: { sort: [] },
+    pageSize,
+    // Resolves with { rows, total?, nextCursor? }.
+    fetchRows: ({ view, offset, limit, signal }) =&gt;
+      fetch(`/api/items?${query(view, offset, limit)}`, {
+        signal,
+      }).then(json),
+    // Resolves with a number: the view's exact count.
+    // Asked only while a page's total is { atLeast }.
+    fetchCount: ({ view, signal }) =&gt;
+      fetch(`/api/items/count?${query(view)}`, {
+        signal,
+      }).then(json),
+  };
+  const store = new ServerRowsStore(options);
+
+  // update() takes every option: change the view and
+  // pass the rest as they were.
+  function sortBy(columnId, direction = 'ascending') {
+    options.view = { sort: [{ columnId, direction }] };
+    store.update({ ...options });
+  }
+
+  // "Select all" goes to the server as the view and
+  // its exceptions, so it reaches rows not loaded yet.
+  // Resolves with the ids the server archived.
+  async function archive(selection) {
+    const body = selection.kind === 'ids'
+      ? { view: options.view, ids: [...selection.ids] }
+      : { view: options.view,
+          except: [...selection.except] };
+    const res = await fetch('/api/items/archive', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const { archived } = await json(res);
+    store.reload();
+    return archived;
+  }
+  return { store, sortBy, archive };
+}
+
+/** "50 of 310 items", or "50 of 100+ items" for now. */
+export function countText({ rows, total }) {
+  const fmt = (n) =&gt; n.toLocaleString('en-US');
+  const items = (n) =&gt; (n === 1 ? 'item' : 'items');
+  const shown = fmt(rows.length);
+  if (total === undefined) {
+    return `${shown} ${items(rows.length)}`;
+  }
+  if (typeof total === 'number') {
+    return `${shown} of ${fmt(total)} ${items(total)}`;
+  }
+  return `${shown} of ${fmt(total.atLeast)}+ items`;
+}</code></pre>
+      <p>Then render the snapshot whenever it changes, start the store when the table appears and stop it when the table goes away. Load more is a button: <code>loadMore()</code> asks for the next page only once the current one has arrived, so calling it straight after <code>start()</code> does nothing.</p>
+      <pre tabindex="0"><code>import { createItemsStore, countText }
+  from './client.js';
+
+const { store, sortBy } = createItemsStore();
+store.subscribe(() =&gt; {
+  const snapshot = store.getSnapshot();
+  // snapshot: { rows, state, total, paging }
+  render(snapshot, countText(snapshot));
+});
+store.start(); // fetches the first page
+moreButton.onclick = () =&gt; store.loadMore();
+titleHeader.onclick = () =&gt; sortBy('title');
+// When the table goes away: aborts what is in
+// flight, keeps the cache.
+store.stop();</code></pre>
+      <p>The snapshot is plain data: <code>{ rows, state, total, paging }</code>. It is a new object only when something changed, so comparing snapshots by identity is enough to skip work.</p>
+      <p>Everything else is a command:</p>
+      <ul>
+        <li><code>store.update(config)</code> when the view, page size or mode changes, with <em>all</em> the options (an option left out goes back to its default, except <code>now</code>);</li>
+        <li><code>store.loadMore()</code> and <code>store.setPage(n)</code> to move;</li>
+        <li><code>store.retry()</code> after a failure;</li>
+        <li><code>store.reload()</code> after you change data on the server.</li>
+      </ul>
+
+      <h2 id="server">Your server's contract</h2>
+      <p>Your <code>fetchRows</code> receives a request and returns a page.</p>
+      <div class="table-scroll" role="region" tabindex="0" aria-label="Request fields">
+<table>
+        <caption class="visually-hidden">Request fields</caption>
+        <thead><tr><th scope="col">Request field</th><th scope="col">Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>view</code></td><td>The sort, and the <a href="api.html#TableFilter">filter</a> if you set one. Plain data: send it to your server as you like.</td></tr>
+          <tr><td><code>offset</code></td><td>Rows to skip. Always set, so offset-only servers work.</td></tr>
+          <tr><td><code>cursor</code></td><td>In load-more mode, the previous page's <code>nextCursor</code>. Prefer cursors (keyset paging) when rows move between requests.</td></tr>
+          <tr><td><code>limit</code></td><td>The page size.</td></tr>
+          <tr><td><code>signal</code></td><td>Aborted when the request is out of date or the store stops. Pass it to <code>fetch</code>.</td></tr>
+        </tbody>
+      </table>
+</div>
+      <div class="table-scroll" role="region" tabindex="0" aria-label="Response field table">
+<table>
+        <thead><tr><th scope="col">Response field</th><th scope="col">Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>rows</code></td><td>The page's rows, in the view's order.</td></tr>
+          <tr><td><code>total</code></td><td>Optional. An exact number, or <code>{ atLeast: n }</code> while the exact count is expensive. A number on every page keeps the count current with no separate count request.</td></tr>
+          <tr><td><code>nextCursor</code></td><td>Optional. The next page's cursor, or <code>null</code> on the last page. Leave it out for offset paging.</td></tr>
+        </tbody>
+      </table>
+</div>
+      <div class="note">
+        <p><strong>The one rule for offset paging:</strong> without a cursor, a page with fewer rows than <code>limit</code> is the last page, unless its own <code>total</code> says there are more. Return <code>limit</code> rows whenever there are that many, or return cursors.</p>
+      </div>
+      <p><code>total</code> is optional. With no total at all, a short page or a <code>null</code> cursor ends the list and counts the rows through it, and <code>fetchCount</code> is never called.</p>
+      <p>If your server reports <code>{ atLeast }</code>, also give the store a <code>fetchCount</code>. It resolves with the count as a plain number: <code>310</code>, not <code>{ count: 310 }</code>. It is asked once per <a href="#cache">visit</a> while the total is a lower bound, so a count that failed is asked again on the next visit. Until it answers, the total reads “50 of 1,000+”.</p>
+
+      <h2 id="paging">Load more or pages</h2>
+      <p><code>mode: 'load-more'</code> (the default) appends pages: page <em>p</em> is asked for only after page <em>p − 1</em> arrives, with its cursor. <code>snapshot.paging</code> is <code>{ kind: 'load-more', hasMore }</code>. <code>loadMore()</code> does nothing when there is no next page, so a double click can't fetch twice.</p>
+      <p><code>mode: 'pages'</code> shows one page at a time and asks by offset only. <code>snapshot.paging</code> is <code>{ kind: 'pages', page, pageCount }</code>, with <code>page</code> counted from 0. If rows are removed on the server and the page you are on no longer exists, the store moves to the last one that does. Without a count it finds that page by halving the distance, so a link to page 5,000 of a 100-page list takes about a dozen requests.</p>
+      <p>In load-more mode, the next page is asked for from the rows already loaded. If a short page wasn't the last (its <code>total</code> said there were more), no rows are skipped.</p>
+
+      <h2 id="state">Reading the state</h2>
+      <p><code>snapshot.state</code> is a few independent facts rather than one status label, because a table can be, for example, showing good rows while the next page failed. The store always sets <code>rows</code> and <code>fetching</code>, so settled rows of the current view are <code>{ rows: 'current', fetching: false, since }</code>.</p>
+      <div class="table-scroll" role="region" tabindex="0" aria-label="Field table">
+<table>
+        <thead><tr><th scope="col">Field</th><th scope="col">Values</th><th scope="col">Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>rows</code></td><td><code>'current'</code> · <code>'previous'</code> · <code>'none'</code></td><td>Whose rows are on screen: this view's, the last view's (kept while the new one loads, so the layout doesn't jump), or nothing yet.</td></tr>
+          <tr><td><code>fetching</code></td><td>boolean</td><td>Rows are on the way.</td></tr>
+          <tr><td><code>since</code></td><td><code>Date</code></td><td>When the rows on screen were fetched.</td></tr>
+          <tr><td><code>failure</code></td><td><code>{ message?, retry, scope }</code></td><td>What failed. <code>scope</code> is <code>'load'</code> (this view's rows), <code>'refresh'</code> (rows already on screen) or <code>'more'</code> (the next page).</td></tr>
+        </tbody>
+      </table>
+</div>
+      <p>How Lede's data table renders them, as a starting point:</p>
+      <ul>
+        <li><strong>Skeleton rows:</strong> <code>rows === 'none'</code>, fetching, no failure.</li>
+        <li><strong>Busy</strong> (<code>aria-busy</code>): fetching while the rows on screen aren't this view's.</li>
+        <li><strong>“Updating…”</strong> next to the count: fetching.</li>
+        <li><strong>An alert</strong> for <code>'load'</code> and <code>'more'</code>. After a failed <code>'load'</code>, previous rows are hidden rather than passed off as the new view's.</li>
+        <li><strong>A quiet notice,</strong> “Showing saved data from 10:42”, for <code>'refresh'</code>, with a Refresh button that calls <code>failure.retry</code>.</li>
+      </ul>
+
+      <h2 id="cache">Views, caching and staleness</h2>
+      <p>Pages are cached by <code>pageKey(view, pageSize)</code>: the view and the page size both decide which rows a page holds. Coming back to a sort you saw a moment ago is instant.</p>
+      <p>A <em>visit</em> is one stay on a view and page. It starts on <code>start()</code>, on a new view, page size or mode, on <code>setPage()</code> and on <code>reload()</code>. A new visit:</p>
+      <ul>
+        <li>aborts the last visit's page requests. A count for the same view carries on, except after <code>reload()</code>, which aborts it and asks again;</li>
+        <li>forgets the last visit's failures, so coming back to a view that failed asks the server again;</li>
+        <li>checks the cached pages it shows against <code>staleAfter</code> (30 s by default), once.</li>
+      </ul>
+      <p>Stale pages are fetched again in the background while the old rows stay on screen. In load-more mode the whole chain is rebuilt aside and swapped in when complete, so you never see old and new pages mixed. If the list came back shorter, the rows past its new end are dropped.</p>
+      <p>Call <code>reload()</code> after you change data on the server: every cached page is marked stale, and what's on screen is fetched again in the same way.</p>
+
+      <h2 id="counts">Counts</h2>
+      <p>The total in the snapshot is kept as consistent with the rows as the rows are with the server:</p>
+      <ul>
+        <li>A number on a page sets the exact count. <code>{ atLeast }</code> on a page sets a lower bound, and the store asks <code>fetchCount</code>, unless a short page at or past the bound, or a page with a <code>null</code> cursor, settles the count itself.</li>
+        <li>When rows are fetched again (staleness, <code>reload()</code>), a count that came from <code>fetchCount</code> is asked for again with them. One that came from a page is settled by the next page's total.</li>
+        <li>A refreshed lower bound above the old count replaces it at once. A count that answers after a newer page total doesn't overwrite it.</li>
+        <li>Until a new count arrives, the old one is still shown. It limits paging only for rows fetched before the recount began, so new rows on the server are reachable. In pages mode it stays a floor for the page count, so the pager doesn't shrink and grow back.</li>
+        <li>By offset, a short page ends the list and settles the count, unless its own total, or a count learned later, says there are more rows. An empty page always ends a load-more list. A count settled this way gives way when a later page brings more rows than it. In pages mode, an empty page that finds the count too high asks for a new count instead of guessing one.</li>
+      </ul>
+
+      <h2 id="failures">Failures and retry</h2>
+      <p>The store never retries by itself within a visit. Each failure says what it was about:</p>
+      <ul>
+        <li><strong><code>'load'</code>:</strong> this view's rows (or this page's) failed. <code>retry()</code> asks again.</li>
+        <li><strong><code>'more'</code>:</strong> the next page failed; the rows on screen are fine. <code>loadMore()</code> or <code>retry()</code> asks again.</li>
+        <li><strong><code>'refresh'</code>:</strong> rows on screen couldn't be refreshed. They stay, with <code>since</code>, and so does the count that belongs to them. <code>retry()</code> starts a new visit and refreshes what is stale.</li>
+      </ul>
+      <p>A fetcher that throws synchronously is treated like one that rejects. A fetcher that ignores its <code>signal</code> is harmless: a late answer to an aborted request is dropped.</p>
+
+      <h2 id="selection">Selection</h2>
+      <p>A selection is one value, whichever way it was made:</p>
+      <pre tabindex="0"><code>type Selection =
+  // these rows
+  | { kind: 'ids'; ids: ReadonlySet&lt;string&gt; }
+  // every row in the view, except these
+  | { kind: 'all-matching'; except: ReadonlySet&lt;string&gt; };</code></pre>
+      <p>The helpers are pure functions, so they work with any state library:</p>
+      <pre tabindex="0"><code>import {
+  setSelected, isSelected, selectionCount,
+  removeFromSelection, type Selection,
+} from '@fairchild/table-core';
+
+// Nothing selected:
+let selection: Selection =
+  { kind: 'ids', ids: new Set() };
+selection = setSelected(selection, ['WI-1', 'WI-2'], true);
+// "Select all 1,284":
+selection = { kind: 'all-matching', except: new Set() };
+// Untick one: it joins `except`.
+selection = setSelected(selection, ['WI-7'], false);
+const { rows, total } = store.getSnapshot();
+selectionCount(selection, total, rows.length); // 1,283
+
+// Rows deleted on the server leave the selection. They
+// don't become exceptions: the server's new total no
+// longer counts them.
+await api.archive(['WI-9']);
+selection = removeFromSelection(selection, ['WI-9']);
+store.reload();</code></pre>
+      <p>An all-matching selection counts against the view's total; while the total is a lower bound, so is the count.</p>
+      <p>To act on a selection, send it to your server as it is. “Select all” goes as the view and its exceptions, <code>{ view, except }</code>, so the action reaches rows that were never loaded. The quick start's <code>archive()</code> does this. Clear the selection when the view's filter changes, so an action never reaches rows that aren't shown.</p>
+
+      <h2 id="react">Using it from React</h2>
+      <p>The store follows React's external-store contract, so a hook is a few lines. Lede's own <code>useServerRows</code> works like this:</p>
+      <pre tabindex="0"><code>function useServerRows(options) {
+  const [store] = useState(
+    () =&gt; new ServerRowsStore(options),
+  );
+  // Every render: the fetchers may change, and a new
+  // view moves to its own cache entry.
+  useLayoutEffect(() =&gt; { store.update(options); });
+  useEffect(() =&gt; {
+    store.start();
+    return store.stop;
+  }, [store]);
+  const snapshot = useSyncExternalStore(
+    store.subscribe, store.getSnapshot, store.getSnapshot,
+  );
+  const { loadMore, setPage, reload } = store;
+  return { ...snapshot, loadMore, setPage, reload };
+}</code></pre>
+      <p>The commands are stable functions, so they're safe to pass to memoized rows. <code>stop()</code> keeps the cache, so a StrictMode remount doesn't refetch what it already has.</p>
+
+      <h2 id="testing">Testing your integration</h2>
+      <p>Give the store a clock (<code>now</code>) and fetchers that return promises you settle yourself. The order of events is then exact, with no timers:</p>
+      <pre tabindex="0"><code>let clock = 0;
+const pending = [];
+const store = new ServerRowsStore({
+  view: { sort: [] },
+  pageSize: 2,
+  staleAfter: 100,
+  now: () =&gt; clock,
+  fetchRows: (request) =&gt; new Promise(
+    (resolve, reject) =&gt;
+      pending.push({ request, resolve, reject }),
+  ),
+});
+store.start();
+pending[0].resolve({
+  rows: [{ id: 'a' }, { id: 'b' }],
+  nextCursor: 'c1',
+});
+await new Promise((r) =&gt; setTimeout(r, 0));
+store.getSnapshot().paging;
+// { kind: 'load-more', hasMore: true }
+clock += 101; // the page is now stale</code></pre>
+
+      <h2 id="guarantees">What the tests cover</h2>
+      <p><code>npm test</code> runs <code>node --test</code> over <code>test/</code>, in the style above. Each file below drives the store one event at a time.</p>
+      <ul>
+        <li><strong><code>server-rows-store.test.ts</code>:</strong> the cursor chain and reload, page size, cancellation, merged and late requests, StrictMode start/stop, the failure scopes, <code>staleAfter</code> and pages mode.</li>
+        <li><strong><code>consistency.test.ts</code>:</strong> rows, total and paging together through:
+          <ul>
+            <li>server growth and shrinkage between visits;</li>
+            <li>totals arriving before or after rows;</li>
+            <li>failed refreshes followed by retry;</li>
+            <li>servers that give exact totals on every page;</li>
+            <li>deep links and empty pages.</li>
+          </ul>
+        </li>
+        <li><strong><code>regressions.test.ts</code>, <code>server-shapes.test.ts</code> and <code>deep-links-and-rebuilds.test.ts</code>:</strong> sequences that once broke, each failing before its fix, and the shapes real servers take: counts settled and redone across visits, failed rebuilds, deep links with no count and load-more offsets after a short page.</li>
+        <li><strong><code>pages-refresh.test.ts</code>:</strong> pages mode when a refresh fails or a count ages: saved rows stay, empty pages don't.</li>
+        <li><strong><code>malformed-responses.test.ts</code> and <code>bad-totals.test.ts</code>:</strong> answers that aren't rows, counts or totals fail like errors, in every position, and Load more stays offered while its page loads.</li>
+        <li><strong><code>low-totals.test.ts</code>:</strong> a total below the rows a page brings is read as a lower bound, so the list doesn't end on it.</li>
+        <li><strong><code>filter.test.ts</code>:</strong> a filter is part of a page's identity, and never shares the unfiltered view's cache entry.</li>
+        <li><strong><code>selection.test.ts</code>:</strong> the selection helpers, including deletions from both kinds of selection.</li>
+        <li><strong><code>boundary.test.ts</code>:</strong> no dependencies, and sources that import only each other.</li>
+        <li><strong><code>docs.test.ts</code>:</strong> these pages: every export documented, every link resolving, every code block within 60 columns, and the example client run against the example server.</li>
+      </ul>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="inner">
+      <span>@fairchild/table-core · MIT license</span>
+      <span><a href="api.html">API reference</a></span>
+    </div>
+  </footer>
+</body>
+</html>

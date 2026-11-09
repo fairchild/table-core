@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>@fairchild/table-core</title>
+  <meta name="description" content="Loads table rows from a server one page at a time and keeps the count right, with helpers for selection. The framework-free part of Lede's data table.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="canonical" href="https://fairchild.github.io/table-core/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://fairchild.github.io/table-core/">
+  <meta property="og:title" content="@fairchild/table-core">
+  <meta property="og:description" content="Loads table rows from a server one page at a time and keeps the count right, with helpers for selection. The framework-free part of Lede's data table.">
+  <meta property="og:image" content="https://fairchild.github.io/table-core/assets/og.png">
+  <meta property="og:image:alt" content="@fairchild/table-core: loads table rows from a server one page at a time and keeps the count right.">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="assets/style.css">
+  <script type="module" src="assets/copy.js"></script>
+  <script type="importmap">{ "imports": { "@fairchild/table-core": "./vendor/table-core/index.js" } }</script>
+  <script type="module" src="assets/demo.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="inner">
+      <a class="brand" href="./">@fairchild/table-core <span>by Lede</span></a>
+      <nav class="site-nav" aria-label="Documentation">
+        <ul>
+          <li><a href="./" aria-current="page">Overview</a></li>
+          <li><a href="guide.html">Guide</a></li>
+          <li><a href="api.html">API</a></li>
+          <li><a href="https://github.com/fairchild/table-core">GitHub</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="title">
+      <h1 id="title">@fairchild/table-core</h1>
+      <p class="lede">
+        Loads table rows from a server one page at a time and keeps the count right, with helpers for a selection. It
+        is the part of <a href="https://lede.cloudcompute.com/">Lede</a>'s data table that doesn't depend on React or
+        the DOM, so you can use it from any framework or from Node.
+      </p>
+      <p>
+        It has no columns, no rendering and no virtualization. You render the rows yourself, or use Lede's
+        <a href="https://lede.cloudcompute.com/blocks/data-table">DataTable</a>, which is built on the same store.
+      </p>
+      <div class="install">
+        <pre tabindex="0" aria-label="Install command"><code>npm install @fairchild/table-core</code></pre>
+      </div>
+      <div class="actions">
+        <a class="button primary" href="guide.html#quick-start">Guide</a>
+        <a class="button" href="api.html">API reference</a>
+      </div>
+    </section>
+
+    <section class="section demo" id="demo" aria-labelledby="try">
+      <h2 id="try">Try it</h2>
+      <p class="demo-intro">
+        A plain HTML table on this package, with no framework. The server is pretend and runs in this page, with real
+        delays, and every request it gets shows in the log: watch “50 of 100+” become “50 of 310”.
+      </p>
+      <p data-static-only>A sample of what the live demo shows once the first page and the count arrive. The demo itself needs JavaScript.</p>
+      <div class="demo-stories" data-live-only hidden>
+        <h3 id="demo-stories">Stories</h3>
+        <ul aria-labelledby="demo-stories">
+          <li><button type="button" class="button" data-story="sort-twice">Sort twice quickly</button> The first request is canceled, and only the second view shows.</li>
+          <li><button type="button" class="button" data-story="fail-more">Fail Load more</button> The rows stay, and Try again asks for the page again.</li>
+          <li><button type="button" class="button" data-story="fail-refresh">Fail a refresh</button> The rows stay, with the time they were fetched.</li>
+          <li><button type="button" class="button" data-story="archive-all-but-one">Select all, clear one and archive</button> The server gets the view and one exception, and archives rows that were never loaded.</li>
+        </ul>
+      </div>
+      <div class="demo-controls" role="group" aria-labelledby="demo-server" data-live-only hidden>
+        <h3 id="demo-server">Server</h3>
+        <button type="button" class="button demo-slow" aria-pressed="false">Slow server</button>
+        <button type="button" class="button demo-fail">Fail the next request</button>
+        <button type="button" class="button demo-add">Add 25 rows</button>
+        <button type="button" class="button demo-delete">Delete the first row</button>
+        <button type="button" class="button demo-reset">Start over</button>
+      </div>
+      <div class="demo-grid">
+        <div class="demo-main">
+          <p class="demo-summary"><span class="demo-count" aria-live="polite" tabindex="-1">50 of 310 items</span> <span class="demo-status" aria-live="polite"></span></p>
+          <div class="demo-selection" role="group" aria-label="Selection" data-live-only hidden>
+            <span class="demo-selected" aria-live="polite">None selected</span>
+            <button type="button" class="button demo-select-all">Select all</button>
+            <button type="button" class="button demo-clear" disabled>Clear</button>
+            <button type="button" class="button demo-archive" disabled>Archive</button>
+          </div>
+          <div class="demo-problem" role="alert" hidden><span class="demo-problem-text"></span> <button type="button" class="button demo-retry">Try again</button></div>
+          <div class="table-scroll" role="region" tabindex="0" aria-label="Items">
+            <table>
+              <caption class="visually-hidden">Items</caption>
+              <thead>
+                <tr>
+                  <th scope="col"><span class="visually-hidden">Selected</span></th>
+                  <th scope="col"><button type="button" data-sort="id">ID</button></th>
+                  <th scope="col"><button type="button" data-sort="title">Title</button></th>
+                  <th scope="col"><button type="button" data-sort="due">Due</button></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td></td><th scope="row">IT-1</th><td>Draft rota 1</td><td>2026-02-08</td></tr>
+                <tr><td></td><th scope="row">IT-2</th><td>Fix onboarding 2</td><td>2026-03-15</td></tr>
+                <tr><td></td><th scope="row">IT-3</th><td>Plan invoice 3</td><td>2026-04-22</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <button type="button" class="button demo-more" data-live-only hidden>Load more</button>
+        </div>
+        <div class="demo-side">
+          <h3 id="demo-requests">Requests</h3>
+          <ol class="demo-log" aria-labelledby="demo-requests">
+            <li data-status="200"><code>/api/items/count?</code> 200 in 1601 ms</li>
+            <li data-status="200"><code>/api/items?offset=0&amp;limit=50</code> 200 in 452 ms</li>
+          </ol>
+          <h3 id="demo-snapshot">Snapshot</h3>
+          <pre class="demo-snapshot" tabindex="0" aria-labelledby="demo-snapshot">{
+  "rows": "50 rows: IT-1 … IT-50",
+  "total": 310,
+  "paging": { "kind": "load-more", "hasMore": true },
+  "state": { "rows": "current", "fetching": false }
+}</pre>
+        </div>
+      </div>
+      <p>
+        The code: <a href="examples/client.js">the client</a> (the same file as the
+        <a href="guide.html#quick-start">guide's quick start</a>), <a href="examples/server.js">the pretend server</a>
+        and <a href="assets/demo.js">the table</a>.
+      </p>
+    </section>
+
+    <section class="section" aria-labelledby="fit">
+      <h2 id="fit">Is it for you?</h2>
+      <div class="split">
+        <div>
+          <h3>Use it when</h3>
+          <ul>
+            <li>your rows live on a server and come a page at a time;</li>
+            <li>you render the table yourself, or with Lede's <a href="https://lede.cloudcompute.com/blocks/data-table">DataTable</a>;</li>
+            <li>you want a correct count, cancellation and failures without writing them.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Use something else when</h3>
+          <ul>
+            <li>you want columns, cell rendering or virtualization: it has none. Try TanStack Table or a grid;</li>
+            <li>all your rows are already in memory: sort them yourself;</li>
+            <li>you want a general data cache for your whole app.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+    <section class="section" aria-labelledby="tests">
+      <div class="split">
+        <div>
+          <h2 id="tests">Tests</h2>
+          <p>
+            The tests answer each request by hand and control the clock, so they check the exact order of events
+            without a browser or timers. The <a href="guide.html#guarantees">guide lists what they cover</a>.
+          </p>
+        </div>
+        <ul class="checks">
+          <li>An outdated request is aborted, and a late reply to it is ignored.</li>
+          <li>Rows added or removed on the server between visits show up, and the count follows.</li>
+          <li>A late count doesn't replace a newer total.</li>
+          <li>If a refresh fails, the old rows and their count stay on screen, marked with their age.</li>
+          <li>Deleting rows from a “select all” selection keeps the count correct.</li>
+          <li>The package has no dependencies and imports only its own files.</li>
+        </ul>
+      </div>
+    </section>
+    <section class="section" aria-labelledby="what">
+      <h2 id="what">What it does</h2>
+      <ul class="cards">
+        <li class="card">
+          <h3>Fetches pages</h3>
+          <p>Calls your function for each page, by offset or by cursor. With “Load more” it keeps adding pages; in pages mode it shows one page at a time.</p>
+        </li>
+        <li class="card">
+          <h3>Caches and cancels</h3>
+          <p>Keeps pages per view, so switching back is instant. Aborts requests you no longer need and merges duplicate ones.</p>
+        </li>
+        <li class="card">
+          <h3>Keeps the count right</h3>
+          <p>Reports a total of “at least 100” until your count endpoint answers, so you can show “50 of 100+”, then the exact number. Asks again when the rows are refreshed.</p>
+        </li>
+        <li class="card">
+          <h3>Reports its state</h3>
+          <p>Tells you whose rows are on screen, whether more are loading, what failed and how old the rows are, so you can render each case.</p>
+        </li>
+        <li class="card">
+          <h3>Helps with selection</h3>
+          <p>Pure functions over a selection you hold: a list of ids, or “all matching, except these”. They count it and drop rows deleted on the server.</p>
+        </li>
+        <li class="card">
+          <h3>Has no dependencies</h3>
+          <p>Plain TypeScript. Subscribe to changes and read a snapshot; Lede's React hook is a few lines on top.</p>
+        </li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="inner">
+      <span>@fairchild/table-core · MIT license</span>
+      <span>Part of Lede.</span>
+    </div>
+  </footer>
+</body>
+</html>

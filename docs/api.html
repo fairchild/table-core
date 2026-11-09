@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>API · @fairchild/table-core</title>
+  <meta name="description" content="Every export of @fairchild/table-core: ServerRowsStore, its config, request, response and snapshot, the table types and the selection helpers.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="canonical" href="https://fairchild.github.io/table-core/api.html">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://fairchild.github.io/table-core/api.html">
+  <meta property="og:title" content="API · @fairchild/table-core">
+  <meta property="og:description" content="Every export of @fairchild/table-core: ServerRowsStore, its config, request, response and snapshot, the table types and the selection helpers.">
+  <meta property="og:image" content="https://fairchild.github.io/table-core/assets/og.png">
+  <meta property="og:image:alt" content="@fairchild/table-core: loads table rows from a server one page at a time and keeps the count right.">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="assets/style.css">
+  <script type="module" src="assets/copy.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="inner">
+      <a class="brand" href="./">@fairchild/table-core <span>by Lede</span></a>
+      <nav class="site-nav" aria-label="Documentation">
+        <ul>
+          <li><a href="./">Overview</a></li>
+          <li><a href="guide.html">Guide</a></li>
+          <li><a href="api.html" aria-current="page">API</a></li>
+          <li><a href="https://github.com/fairchild/table-core">GitHub</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page with-toc">
+    <nav class="toc toc-wide" aria-labelledby="toc-title">
+      <h2 id="toc-title">Exports</h2>
+      <ol>
+        <li><a href="#ServerRowsStore">ServerRowsStore</a></li>
+        <li><a href="#ServerRowsConfig">ServerRowsConfig</a></li>
+        <li><a href="#ServerRowsRequest">ServerRowsRequest</a></li>
+        <li><a href="#ServerRowsResponse">ServerRowsResponse</a></li>
+        <li><a href="#ServerCountRequest">ServerCountRequest</a></li>
+        <li><a href="#ServerRowsSnapshot">ServerRowsSnapshot</a></li>
+        <li><a href="#pageKey">pageKey</a></li>
+        <li><a href="#TableState">TableState</a></li>
+        <li><a href="#TableView">TableView</a></li>
+        <li><a href="#SortItem">SortItem</a></li>
+        <li><a href="#SortDirection">SortDirection</a></li>
+        <li><a href="#TableFilter">TableFilter</a></li>
+        <li><a href="#FilterValue">FilterValue</a></li>
+        <li><a href="#Total">Total</a></li>
+        <li><a href="#Selection">Selection</a></li>
+        <li><a href="#isSelected">isSelected</a></li>
+        <li><a href="#setSelected">setSelected</a></li>
+        <li><a href="#removeFromSelection">removeFromSelection</a></li>
+        <li><a href="#selectionCount">selectionCount</a></li>
+      </ol>
+    </nav>
+    <nav class="toc toc-narrow" aria-labelledby="toc-title-narrow">
+      <details>
+        <summary><h2 id="toc-title-narrow">Exports</h2></summary>
+        <ol>
+          <li><a href="#ServerRowsStore">ServerRowsStore</a></li>
+          <li><a href="#ServerRowsConfig">ServerRowsConfig</a></li>
+          <li><a href="#ServerRowsRequest">ServerRowsRequest</a></li>
+          <li><a href="#ServerRowsResponse">ServerRowsResponse</a></li>
+          <li><a href="#ServerCountRequest">ServerCountRequest</a></li>
+          <li><a href="#ServerRowsSnapshot">ServerRowsSnapshot</a></li>
+          <li><a href="#pageKey">pageKey</a></li>
+          <li><a href="#TableState">TableState</a></li>
+          <li><a href="#TableView">TableView</a></li>
+          <li><a href="#SortItem">SortItem</a></li>
+          <li><a href="#SortDirection">SortDirection</a></li>
+          <li><a href="#TableFilter">TableFilter</a></li>
+          <li><a href="#FilterValue">FilterValue</a></li>
+          <li><a href="#Total">Total</a></li>
+          <li><a href="#Selection">Selection</a></li>
+          <li><a href="#isSelected">isSelected</a></li>
+          <li><a href="#setSelected">setSelected</a></li>
+          <li><a href="#removeFromSelection">removeFromSelection</a></li>
+          <li><a href="#selectionCount">selectionCount</a></li>
+        </ol>
+      </details>
+    </nav>
+
+    <main id="main" class="prose">
+      <h1>API reference</h1>
+      <p class="lede">Everything the package exports. Anything not listed here is internal and may change in any release.</p>
+
+      <h2 id="ServerRowsStore"><code>ServerRowsStore&lt;Row&gt;</code></h2>
+      <p>The server-side row model. Create one per table, connect it to your UI with <code>subscribe</code> and <code>getSnapshot</code>, and drive it with its commands. The commands are bound functions, so they can be passed around as they are.</p>
+      <pre tabindex="0"><code>new ServerRowsStore&lt;Row&gt;(config: ServerRowsConfig&lt;Row&gt;)</code></pre>
+      <dl class="api">
+        <dt>subscribe(listener: () =&gt; void): () =&gt; void</dt>
+        <dd>Call <code>listener</code> whenever the snapshot changes. Returns the unsubscribe function.</dd>
+        <dt>getSnapshot(): ServerRowsSnapshot&lt;Row&gt;</dt>
+        <dd>The current <a href="#ServerRowsSnapshot">snapshot</a>. The same object until something changes.</dd>
+        <dt>start(): void</dt>
+        <dd>Begin fetching, when the table appears. Starts a visit.</dd>
+        <dt>stop(): void</dt>
+        <dd>Abort everything in flight, when the table goes away. The cache is kept, so a later <code>start()</code> shows cached rows at once.</dd>
+        <dt>update(config: ServerRowsConfig&lt;Row&gt;): void</dt>
+        <dd>New options, all of them: an option left out goes back to its default, except <code>now</code>, which keeps the store's clock. Fetchers are always replaced. A new view, page size or mode starts a visit on its own cache entry. Calling it with an unchanged view is cheap and changes nothing on screen.</dd>
+        <dt>loadMore(): void</dt>
+        <dd>Load-more mode: fetch the next page, or ask again for a next page that failed. Does nothing when there is no next page.</dd>
+        <dt>setPage(page: number): void</dt>
+        <dd>Pages mode: show page <code>page</code>, counted from 0. Starts a visit.</dd>
+        <dt>retry(): void</dt>
+        <dd>Ask again for what failed: the failed page, or, after a failed refresh, everything stale on screen.</dd>
+        <dt>reload(): void</dt>
+        <dd>After a change on the server: mark every cached page stale and fetch what's on screen again. The rows stay on screen meanwhile. If the refresh fails, they're shown as saved data.</dd>
+      </dl>
+
+      <h2 id="ServerRowsConfig"><code>ServerRowsConfig&lt;Row&gt;</code></h2>
+      <div class="table-scroll" role="region" tabindex="0" aria-label="Option table">
+<table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>view</code></td><td>required</td><td>A <a href="#TableView"><code>TableView</code></a>: what the server sorts by.</td></tr>
+          <tr><td><code>fetchRows</code></td><td>required</td><td><code>(request: ServerRowsRequest) =&gt; Promise&lt;ServerRowsResponse&lt;Row&gt;&gt;</code>. See <a href="guide.html#server">your server's contract</a>.</td></tr>
+          <tr><td><code>fetchCount</code></td><td>none</td><td><code>(request: ServerCountRequest) =&gt; Promise&lt;number&gt;</code>. Resolves with the count as a plain number, not an object. The exact count, asked for at most once per visit: when a page reports <code>{ atLeast }</code> without settling the count; again when a count it gave is redone (reload, revalidation, a count older than <code>staleAfter</code>); when a page fetched during that can't settle it; and when an empty page in pages mode finds the count too high. A count that pages settle themselves isn't asked for. The rows win here too, but only rows held with no gap from the first row, fetched since the last reload and newer than <code>staleAfter</code>: a count below them is read as <code>{ atLeast }</code> of the furthest rows held. Rows past a gap, as after a deep link, don't overrule a count.</td></tr>
+          <tr><td><code>pageSize</code></td><td><code>50</code></td><td>Rows per request. Part of a page's identity: a new size starts over.</td></tr>
+          <tr><td><code>mode</code></td><td><code>'load-more'</code></td><td><code>'load-more'</code> appends pages, chaining cursors. <code>'pages'</code> shows one page at a time, by offset.</td></tr>
+          <tr><td><code>staleAfter</code></td><td><code>30000</code></td><td>Milliseconds. Cached pages, and a count, older than this are fetched again when they come back on screen.</td></tr>
+          <tr><td><code>now</code></td><td><code>Date.now</code></td><td>The clock, for tests.</td></tr>
+        </tbody>
+      </table>
+</div>
+
+      <h2 id="ServerRowsRequest"><code>ServerRowsRequest</code></h2>
+      <dl class="api">
+        <dt>view: TableView</dt><dd>The view to fetch.</dd>
+        <dt>offset: number</dt><dd>Rows to skip. Always set.</dd>
+        <dt>cursor?: string</dt><dd>Load-more mode: the previous page's <code>nextCursor</code>.</dd>
+        <dt>limit: number</dt><dd>The page size.</dd>
+        <dt>signal: AbortSignal</dt><dd>Aborted when the request goes out of date or the store stops.</dd>
+      </dl>
+
+      <h2 id="ServerRowsResponse"><code>ServerRowsResponse&lt;Row&gt;</code></h2>
+      <dl class="api">
+        <dt>rows: Row[]</dt><dd>The page, in the view's order. Without a cursor, fewer than <code>limit</code> rows means this is the last page, unless this response's <code>total</code> says there are more.</dd>
+        <dt>total?: Total</dt><dd>An exact count, or <code>{ atLeast }</code> while it is expensive to compute. The rows win over a number below them: a total less than the rows through this page is read as <code>{ atLeast }</code> of them, so the rest of the list stays reachable.</dd>
+        <dt>nextCursor?: string | null</dt><dd>The next page's cursor; <code>null</code> on the last page, which settles the count at the rows through it unless this page's <code>{ atLeast }</code> is above them. Omit for offset paging.</dd>
+      </dl>
+
+      <h2 id="ServerCountRequest"><code>ServerCountRequest</code></h2>
+      <dl class="api">
+        <dt>view: TableView</dt><dd>The view to count.</dd>
+        <dt>signal: AbortSignal</dt><dd>Aborted when the count is no longer wanted.</dd>
+      </dl>
+
+      <h2 id="ServerRowsSnapshot"><code>ServerRowsSnapshot&lt;Row&gt;</code></h2>
+      <dl class="api">
+        <dt>rows: readonly Row[]</dt><dd>The rows to show: this view's, or, while it loads, the previous view's (see <code>state.rows</code>). The same array until they change.</dd>
+        <dt>state: TableState</dt><dd>See <a href="#TableState"><code>TableState</code></a>.</dd>
+        <dt>total?: Total</dt><dd>The best count known, consistent with the rows.</dd>
+        <dt>paging</dt><dd><code>{ kind: 'load-more'; hasMore: boolean }</code> or <code>{ kind: 'pages'; page: number; pageCount: number }</code>.</dd>
+      </dl>
+
+      <h2 id="pageKey"><code>pageKey(view, pageSize): string</code></h2>
+      <p>The cache identity of a page: everything that changes which rows a page holds. Useful if you keep your own cache alongside the store's.</p>
+
+      <h2 id="TableState"><code>TableState</code></h2>
+      <pre tabindex="0"><code>interface TableState {
+  rows?: 'current' | 'previous' | 'none';
+  fetching?: boolean;
+  since?: Date;
+  failure?: {
+    message?: string;
+    retry: () =&gt; void;
+    scope: 'load' | 'refresh' | 'more';
+  };
+}</code></pre>
+      <p>Independent facts. The store always sets <code>rows</code> and <code>fetching</code>: settled rows of the current view are <code>{ rows: 'current', fetching: false, since }</code>. The fields are optional for a table that has its own rows, where <code>{}</code> means the same. See <a href="guide.html#state">reading the state</a>.</p>
+
+      <h2 id="TableView"><code>TableView</code></h2>
+      <pre tabindex="0"><code>type TableView = {
+  sort: SortItem[]; // length 0 or 1 in version 1
+  filter?: TableFilter;
+};</code></pre>
+      <p>Everything a saved view stores. Later versions add optional keys. Until 1.0, a minor version may rename or remove one; the <a href="https://github.com/fairchild/table-core/blob/main/CHANGELOG.md">CHANGELOG</a> says what to change.</p>
+      <h3 id="SortItem"><code>SortItem</code></h3>
+      <pre tabindex="0"><code>type SortItem = {
+  columnId: string;
+  direction: SortDirection;
+};</code></pre>
+      <h3 id="SortDirection"><code>SortDirection</code></h3>
+      <pre tabindex="0"><code>// The same words as aria-sort.
+type SortDirection = 'ascending' | 'descending';</code></pre>
+
+      <h2 id="Total"><code>Total</code></h2>
+      <pre tabindex="0"><code>type Total = number | { atLeast: number };</code></pre>
+      <p>A count, or a lower bound while the exact figure is computed (“50 of 1,000+”).</p>
+
+      <h3 id="TableFilter"><code>TableFilter</code></h3>
+      <pre tabindex="0"><code>type TableFilter = {
+  readonly [key: string]: FilterValue | undefined;
+};</code></pre>
+      <p>Your own keys and values: a search term, a status. The store doesn't read them; it sends them to your fetchers in <code>view</code> and keys its cache by them, so a new filter starts at the first page. Put a search term here, not in a closure in <code>fetchRows</code>.</p>
+      <h3 id="FilterValue"><code>FilterValue</code></h3>
+      <pre tabindex="0"><code>type FilterValue =
+  | string | number | boolean | null
+  | readonly (string | number | boolean | null)[];</code></pre>
+      <p>Plain JSON, so a view can be saved and put in a URL.</p>
+
+      <h2 id="Selection"><code>Selection</code></h2>
+      <pre tabindex="0"><code>type Selection =
+  | { kind: 'ids'; ids: ReadonlySet&lt;string&gt; }
+  | { kind: 'all-matching'; except: ReadonlySet&lt;string&gt; };</code></pre>
+      <p>These rows, or every row matching the view except these. See <a href="guide.html#selection">selection</a>.</p>
+
+      <h2 id="isSelected"><code>isSelected(selection, id): boolean</code></h2>
+      <p>Whether the row is selected.</p>
+
+      <h2 id="setSelected"><code>setSelected(selection, ids, on): Selection</code></h2>
+      <p>Tick (<code>on = true</code>) or untick rows. In an all-matching selection, unticking adds to <code>except</code> and ticking takes out of it. Returns a new selection.</p>
+
+      <h2 id="removeFromSelection"><code>removeFromSelection(selection, deleted): Selection</code></h2>
+      <p>The selection after rows were deleted on the server: they leave it, and leave <code>except</code> too, because the server's new total no longer counts them. Returns the same object when nothing changes.</p>
+
+      <h2 id="selectionCount"><code>selectionCount(selection, total, shown): Total</code></h2>
+      <p>How many rows are selected. An all-matching selection counts against <code>total</code>, or against <code>shown</code> when there is no total; a lower bound stays a lower bound.</p>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="inner">
+      <span>@fairchild/table-core · MIT license</span>
+      <span><a href="guide.html">Guide</a></span>
+    </div>
+  </footer>
+</body>
+</html>

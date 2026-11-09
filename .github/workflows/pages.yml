@@ -1,0 +1,40 @@
+# Publishes docs/ to GitHub Pages with the live demo working: `npm run docs` copies the built package into
+# docs/vendor/, which the landing page's import map points at. It runs on a push to main that changes the docs, the
+# source or package.json, and by hand (Actions → Pages → Run workflow). It needs Settings → Pages → Source set to
+# "GitHub Actions"; until then the deploy job fails and nothing is published. While the repo is private the build is
+# skipped, so pushes to main stay green; after it goes public, `gh workflow run pages.yml` publishes the first time.
+name: Pages
+on:
+  push:
+    branches: [main]
+    paths: ['docs/**', 'src/**', 'package.json']
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci                    # also builds dist (prepare)
+      - run: npm test                  # the docs test runs the example the page is built on
+      - run: npm run docs              # dist → docs/vendor/table-core/
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: docs }
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
