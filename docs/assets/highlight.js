@@ -1,5 +1,6 @@
-// Colours the code blocks marked class="language-js" or "language-ts". It only wraps the block's text in spans, so
-// without JavaScript the block reads the same, and Copy copies the same text either way.
+// Colors the code blocks marked class="language-js" or "language-ts", and the signatures in a
+// <dl class="language-ts">. It only wraps the text in spans, so without JavaScript it reads the same, and Copy copies
+// the same text either way.
 const keywords = new Set([
   'as', 'async', 'await', 'break', 'case', 'catch', 'class', 'const', 'continue', 'default', 'else', 'export',
   'extends', 'for', 'from', 'function', 'if', 'import', 'in', 'instanceof', 'interface', 'keyof', 'let', 'new', 'of',
@@ -15,7 +16,7 @@ const pattern = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|('(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\
 /** @typedef {'comment' | 'string' | 'keyword' | 'literal' | 'function' | 'type' | 'punctuation' | null} Kind */
 
 /**
- * Splits JavaScript or TypeScript into coloured runs. The runs' text joins back to the source, character for character.
+ * Splits JavaScript or TypeScript into colored runs. The runs' text joins back to the source, character for character.
  * @param {string} source
  * @returns {Array<[Kind, string]>}
  */
@@ -46,8 +47,8 @@ export function tokenize(source) {
   return out;
 }
 
-/** A template literal from its opening backtick, with each `${…}` coloured as code. Returns the index after it. */
 /**
+ * A template literal from its opening backtick, with each `${…}` colored as code. Returns the index after it.
  * @param {string} source
  * @param {number} start
  * @param {(kind: Kind, text: string) => void} push
@@ -75,7 +76,7 @@ function template(source, start, push) {
 }
 
 if (typeof document !== 'undefined') {
-  for (const code of document.querySelectorAll('pre > code.language-js, pre > code.language-ts')) {
+  for (const code of document.querySelectorAll('pre > code.language-js, pre > code.language-ts, dl.language-ts > dt')) {
     code.replaceChildren(...tokenize(code.textContent ?? '').map(([kind, text]) =>
       kind ? Object.assign(document.createElement('span'), { className: `tok-${kind}`, textContent: text }) : text));
   }
