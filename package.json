@@ -1,7 +1,7 @@
 {
   "name": "@fairchild/table-core",
   "version": "0.1.0",
-  "description": "The framework-free core of Lede's data table: table types, selection algebra and a server row model with caching, cancellation and cursor chains.",
+  "description": "Framework-free server-backed table rows: table types, selection algebra and a server row model with caching, cancellation and cursor chains.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -40,8 +40,7 @@
     "headless",
     "server-side",
     "pagination",
-    "selection",
-    "lede"
+    "selection"
   ],
   "repository": {
     "type": "git",

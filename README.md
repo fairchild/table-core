@@ -3,7 +3,7 @@
 **Documentation:** [fairchild.github.io/table-core](https://fairchild.github.io/table-core/) (the `docs/` folder,
 published with GitHub Pages).
 
-The framework-free core of Lede's data table. No React, no DOM, no dependencies:
+Loads table rows from a server one page at a time and keeps the count right. No React, no DOM, no dependencies:
 it runs in a browser, in Node or under any UI framework. It uses `AbortController` and `DOMException`, which both
 provide; type-check against either the DOM library or `@types/node`.
 
@@ -16,12 +16,11 @@ provide; type-check against either the DOM library or `@types/node`.
   - out-of-date requests are aborted, and duplicate ones merged;
   - `{ atLeast }` totals are followed by one exact count, kept consistent with the rows it describes.
 
-It has no columns, no rendering and no virtualization: you render the rows, or use Lede's
-[DataTable](https://lede.cloudcompute.com/blocks/data-table), which is built on the same store. Lede's React hook,
-`useServerRows`, is a thin `useSyncExternalStore` wrapper over it.
+It has no columns, no rendering and no virtualization: you render the rows. From React, a hook over it is a thin
+`useSyncExternalStore` wrapper, as [the guide](https://fairchild.github.io/table-core/guide.html#react) shows.
 
-**Use it when** your rows live on a server and come a page at a time, you render the table yourself or with Lede's
-DataTable, and you want a correct count, cancellation and failure states without writing them.
+**Use it when** your rows live on a server and come a page at a time, you render the table yourself, and you want a
+correct count, cancellation and failure states without writing them.
 
 **Use something else when** you want columns, cell rendering or virtualization (TanStack Table or a data grid), when
 all your rows are already in memory (sort them yourself), or when you want a general data cache for your whole app.

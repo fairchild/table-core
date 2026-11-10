@@ -5,7 +5,7 @@ Versions follow [semver](https://semver.org). Until 1.0, a minor version (0.2.0)
 
 ## 0.1.0
 
-First release. The framework-free core of Lede's data table.
+First release.
 
 ### Added
 

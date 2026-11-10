@@ -1,4 +1,4 @@
-// A small expect() over node:assert, so the tests read the same as Lede's tests and need no test library.
+// A small expect() over node:assert, so the tests read like Jest's or Vitest's and need no test library.
 import assert from 'node:assert/strict';
 
 export function expect(actual: unknown) {
