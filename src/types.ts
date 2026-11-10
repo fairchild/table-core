@@ -40,7 +40,8 @@ export type Total = number | { atLeast: number };
  * - `rows`: whose rows are on screen. `'current'`, the default, are this view's. `'previous'` are the last view's, kept
  *   while this one loads so the layout doesn't jump. `'none'` means nothing is on screen yet.
  * - `fetching`: rows are on the way. With current rows a table can show "Updating…" and stay usable. Otherwise it is
- *   busy.
+ *   busy. Before the store's first `start()` its rows are still coming, so a table rendered then shows loading. After
+ *   `stop()` nothing is in flight, and `fetching` is false.
  * - `since`: when the rows on screen were fetched. Shown when refreshing them failed.
  * - `failure`: the last request failed. `scope` says what failed: `'load'` (this view's or page's rows: hide previous
  *   rows so they never pass as this view's), `'refresh'` (rows on screen could not be refreshed: they stay, with their
