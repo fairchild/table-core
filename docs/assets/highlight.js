@@ -1,5 +1,6 @@
-// Colours the code blocks marked class="language-js" or "language-ts". It only wraps the block's text in spans, so
-// without JavaScript the block reads the same, and Copy copies the same text either way.
+// Colours the code blocks marked class="language-js" or "language-ts", and the signatures in a
+// <dl class="language-ts">. It only wraps the text in spans, so without JavaScript it reads the same, and Copy copies
+// the same text either way.
 const keywords = new Set([
   'as', 'async', 'await', 'break', 'case', 'catch', 'class', 'const', 'continue', 'default', 'else', 'export',
   'extends', 'for', 'from', 'function', 'if', 'import', 'in', 'instanceof', 'interface', 'keyof', 'let', 'new', 'of',
@@ -75,7 +76,7 @@ function template(source, start, push) {
 }
 
 if (typeof document !== 'undefined') {
-  for (const code of document.querySelectorAll('pre > code.language-js, pre > code.language-ts')) {
+  for (const code of document.querySelectorAll('pre > code.language-js, pre > code.language-ts, dl.language-ts > dt')) {
     code.replaceChildren(...tokenize(code.textContent ?? '').map(([kind, text]) =>
       kind ? Object.assign(document.createElement('span'), { className: `tok-${kind}`, textContent: text }) : text));
   }

@@ -111,6 +111,16 @@ test('every code block names its language, so the JavaScript and TypeScript ones
   assert.deepEqual(unnamed, []);
 });
 
+test('the API signatures are coloured as TypeScript, and hold only text for the highlighter to rewrite', () => {
+  const s = html('api.html');
+  const lists = [...s.matchAll(/<dl class="([^"]+)">([\s\S]*?)<\/dl>/g)];
+  assert.ok(lists.length >= 5, 'found the member lists');
+  for (const [, cls, body] of lists) {
+    assert.equal(cls, 'api language-ts');
+    for (const [, dt] of body.matchAll(/<dt>([\s\S]*?)<\/dt>/g)) assert.doesNotMatch(dt, /</, `<dt>${dt}</dt>`);
+  }
+});
+
 test('highlighting keeps every character and tells keywords, strings, comments, calls and types apart', async () => {
   const { tokenize } = await import(new URL('assets/highlight.js', docs).href);
   type Run = [string | null, string];

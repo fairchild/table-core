@@ -93,7 +93,7 @@
       <h2 id="ServerRowsStore"><code>ServerRowsStore&lt;Row&gt;</code></h2>
       <p>The server-side row model. Create one per table, connect it to your UI with <code>subscribe</code> and <code>getSnapshot</code>, and drive it with its commands. The commands are bound functions, so they can be passed around as they are.</p>
       <pre tabindex="0"><code class="language-ts">new ServerRowsStore&lt;Row&gt;(config: ServerRowsConfig&lt;Row&gt;)</code></pre>
-      <dl class="api">
+      <dl class="api language-ts">
         <dt>subscribe(listener: () =&gt; void): () =&gt; void</dt>
         <dd>Call <code>listener</code> whenever the snapshot changes. Returns the unsubscribe function.</dd>
         <dt>getSnapshot(): ServerRowsSnapshot&lt;Row&gt;</dt>
@@ -131,7 +131,7 @@
 </div>
 
       <h2 id="ServerRowsRequest"><code>ServerRowsRequest</code></h2>
-      <dl class="api">
+      <dl class="api language-ts">
         <dt>view: TableView</dt><dd>The view to fetch.</dd>
         <dt>offset: number</dt><dd>Rows to skip. Always set.</dd>
         <dt>cursor?: string</dt><dd>Load-more mode: the previous page's <code>nextCursor</code>.</dd>
@@ -140,20 +140,20 @@
       </dl>
 
       <h2 id="ServerRowsResponse"><code>ServerRowsResponse&lt;Row&gt;</code></h2>
-      <dl class="api">
+      <dl class="api language-ts">
         <dt>rows: Row[]</dt><dd>The page, in the view's order. Without a cursor, fewer than <code>limit</code> rows means this is the last page, unless this response's <code>total</code> says there are more.</dd>
         <dt>total?: Total</dt><dd>An exact count, or <code>{ atLeast }</code> while it is expensive to compute. The rows win over a number below them: a total less than the rows through this page is read as <code>{ atLeast }</code> of them, so the rest of the list stays reachable.</dd>
         <dt>nextCursor?: string | null</dt><dd>The next page's cursor; <code>null</code> on the last page, which settles the count at the rows through it unless this page's <code>{ atLeast }</code> is above them. Omit for offset paging.</dd>
       </dl>
 
       <h2 id="ServerCountRequest"><code>ServerCountRequest</code></h2>
-      <dl class="api">
+      <dl class="api language-ts">
         <dt>view: TableView</dt><dd>The view to count.</dd>
         <dt>signal: AbortSignal</dt><dd>Aborted when the count is no longer wanted.</dd>
       </dl>
 
       <h2 id="ServerRowsSnapshot"><code>ServerRowsSnapshot&lt;Row&gt;</code></h2>
-      <dl class="api">
+      <dl class="api language-ts">
         <dt>rows: readonly Row[]</dt><dd>The rows to show: this view's, or, while it loads, the previous view's (see <code>state.rows</code>). The same array until they change.</dd>
         <dt>state: TableState</dt><dd>See <a href="#TableState"><code>TableState</code></a>.</dd>
         <dt>total?: Total</dt><dd>The best count known, consistent with the rows.</dd>
