@@ -1,7 +1,7 @@
 # Contributing
 
-Issues are welcome, both bug reports and feature requests. For now, an issue is the way to contribute: pull requests
-aren't open.
+Issues are the best way to help: bug reports and feature requests both. Pull requests are welcome too; for anything
+beyond a small fix, open an issue first so we agree on the change before you build it.
 
 **A bug report** says how to make it happen: the steps, what you expected and what happened. Include the package
 version and where it runs (Node or which browser), and attach the requests and responses, a log or a screenshot when
@@ -13,8 +13,8 @@ that API says why.
 
 Report a security issue privately, as [SECURITY.md](SECURITY.md) describes.
 
-The rest of this file is how table-core is built and checked: run it locally, write a failing test for what you
-found, or maintain a fork. A test that fails makes the clearest bug report.
+The rest of this file is how table-core is built and checked, for a pull request, a fork or a failing test that
+shows what you found. A test that fails makes the clearest bug report.
 
 ## Changes
 
