@@ -1,7 +1,19 @@
 # Contributing
 
-Issues and pull requests are welcome. The package is small on purpose: no runtime dependencies, no framework and a
-narrow public API (`src/index.ts`). A change that adds to that API needs a reason in the issue or PR.
+Issues are welcome, both bug reports and feature requests. For now, an issue is the way to contribute: pull requests
+aren't open.
+
+**A bug report** says how to make it happen: the steps, what you expected and what happened. Include the package
+version and where it runs (Node or which browser), and attach the requests and responses, a log or a screenshot when
+you have one. The shortest `fetchRows` that shows the bug is the best evidence: a bug that reproduces gets fixed first.
+
+**A feature request** describes what you're building and where table-core falls short. The package is small on
+purpose: no runtime dependencies, no framework and a narrow public API (`src/index.ts`), so a request that adds to
+that API says why.
+
+Report a security issue privately, as [SECURITY.md](SECURITY.md) describes.
+
+The rest of this file is how table-core is built and checked.
 
 ## Changes
 
