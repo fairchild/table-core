@@ -259,7 +259,7 @@ store.stop();</code></pre>
       </ul>
 
       <h2 id="cache">Views, caching and staleness</h2>
-      <p>Pages are cached by <code>pageKey(view, pageSize)</code>: the view and the page size both decide which rows a page holds. Coming back to a sort you saw a moment ago is instant.</p>
+      <p>Pages are cached by <code>pageKey(view, pageSize)</code>: the view and the page size both decide which rows a page holds. Coming back to a sort you saw a moment ago is instant. The store keeps the 20 views shown most recently (<code>maxViews</code>), and fetches an older one again.</p>
       <p>A <em>visit</em> is one stay on a view and page. It starts on <code>start()</code>, on a new view, page size or mode, on <code>setPage()</code> and on <code>reload()</code>. A new visit:</p>
       <ul>
         <li>aborts the last visit's page requests. A count for the same view carries on, except after <code>reload()</code>, which aborts it and asks again;</li>

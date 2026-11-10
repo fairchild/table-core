@@ -3,6 +3,17 @@
 Versions follow [semver](https://semver.org). Until 1.0, a minor version (0.2.0) may break the API; a patch version
 (0.1.1) does not. Every breaking change is listed under **Breaking**, with what to change.
 
+## Unreleased
+
+### Added
+
+- `maxViews` on `ServerRowsStore`: how many views keep their pages, counting the one on screen. Default 20.
+
+### Changed
+
+- The page cache is bounded. It kept every view until the mode changed; now it keeps the 20 shown most recently, and a
+  view past that is fetched again when it comes back. `maxViews: Infinity` keeps them all, as before.
+
 ## 0.1.0
 
 First release.

@@ -467,3 +467,62 @@ test('a stale cached page revealed by Load more is fetched again, not shown', as
   expect(t.server.last().req).toMatchObject({ view: NONE, offset: 2, cursor: 'c1' });
   expect(t.snap().rows).toHaveLength(2);
 });
+
+const sortedBy = (columnId: string): TableView => ({ sort: [{ columnId, direction: 'ascending' }] });
+
+test('maxViews: past it, the view shown longest ago is fetched again, and the others come from the cache', async () => {
+  const t = setup({ maxViews: 2 });
+  await t.answer(0, { rows: rows(0, 2) });
+  t.update({ view: sortedBy('a') });
+  await t.answer(1, { rows: rows(10, 2) });
+  t.update({ view: sortedBy('b') });
+  await t.answer(2, { rows: rows(20, 2) });
+  // Two views are kept: `a` is one of them.
+  t.update({ view: sortedBy('a') });
+  expect(t.server.requests).toHaveLength(3);
+  expect(t.snap().rows.map((r) => r.id)).toEqual([10, 11]);
+  expect(t.snap().state).toMatchObject({ rows: 'current', fetching: false });
+  // The first view left when `b` came in.
+  t.update({ view: NONE });
+  expect(t.server.requests).toHaveLength(4);
+  expect(t.snap().state).toMatchObject({ rows: 'previous', fetching: true });
+  // Showing `a` again made `b` the one shown longest ago, so `b` left for the first view and `a` stayed.
+  await t.answer(3, { rows: rows(0, 2) });
+  t.update({ view: sortedBy('a') });
+  expect(t.server.requests).toHaveLength(4);
+  t.update({ view: sortedBy('b') });
+  expect(t.server.requests).toHaveLength(5);
+});
+
+test('maxViews: the view on screen keeps its pages and its requests, even at 1, 0 or NaN', async () => {
+  for (const maxViews of [1, 0, NaN]) {
+    const t = setup({ maxViews });
+    await t.answer(0, { rows: rows(0, 2), nextCursor: 'c1' });
+    t.update({ view: BY_ID, maxViews });
+    expect(t.server.last().aborted()).toBe(false);
+    await t.answer(1, { rows: rows(10, 2), nextCursor: 'd1' });
+    t.store.loadMore();
+    expect(t.server.last().req).toMatchObject({ cursor: 'd1', offset: 2 });
+    await t.answer(2, { rows: rows(12, 2), nextCursor: null });
+    expect(t.snap().rows.map((r) => r.id)).toEqual([10, 11, 12, 13]);
+    expect(t.snap().state).toMatchObject({ rows: 'current', fetching: false });
+    // Only that one: the first view is fetched again.
+    t.update({ view: NONE, maxViews });
+    expect(t.server.requests).toHaveLength(4);
+  }
+});
+
+test('maxViews: 20 views by default, and Infinity keeps them all', async () => {
+  for (const [maxViews, kept] of [[undefined, false], [Infinity, true]] as const) {
+    const t = setup({ maxViews });
+    await t.answer(0, { rows: rows(0, 2) });
+    for (let i = 1; i <= 20; i++) {
+      t.update({ view: sortedBy(`c${i}`) });
+      await t.answer(i, { rows: rows(i * 10, 2) });
+    }
+    t.update({ view: sortedBy('c1') });
+    expect(t.server.requests).toHaveLength(21);
+    t.update({ view: NONE });
+    expect(t.server.requests).toHaveLength(kept ? 21 : 22);
+  }
+});
