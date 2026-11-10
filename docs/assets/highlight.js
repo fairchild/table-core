@@ -1,4 +1,4 @@
-// Colours the code blocks marked class="language-js" or "language-ts", and the signatures in a
+// Colors the code blocks marked class="language-js" or "language-ts", and the signatures in a
 // <dl class="language-ts">. It only wraps the text in spans, so without JavaScript it reads the same, and Copy copies
 // the same text either way.
 const keywords = new Set([
@@ -16,7 +16,7 @@ const pattern = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|('(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\
 /** @typedef {'comment' | 'string' | 'keyword' | 'literal' | 'function' | 'type' | 'punctuation' | null} Kind */
 
 /**
- * Splits JavaScript or TypeScript into coloured runs. The runs' text joins back to the source, character for character.
+ * Splits JavaScript or TypeScript into colored runs. The runs' text joins back to the source, character for character.
  * @param {string} source
  * @returns {Array<[Kind, string]>}
  */
@@ -47,8 +47,8 @@ export function tokenize(source) {
   return out;
 }
 
-/** A template literal from its opening backtick, with each `${…}` coloured as code. Returns the index after it. */
 /**
+ * A template literal from its opening backtick, with each `${…}` colored as code. Returns the index after it.
  * @param {string} source
  * @param {number} start
  * @param {(kind: Kind, text: string) => void} push

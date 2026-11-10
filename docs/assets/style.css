@@ -77,7 +77,8 @@ li { margin: 0.25rem 0; }
 code { font-family: var(--mono); font-size: 0.88em; background: var(--code-bg); color: var(--code-text); padding: 0.1em 0.35em; border-radius: 5px; }
 pre { background: var(--code-bg); color: var(--code-text); padding: 1rem 1.1rem; border-radius: var(--radius); overflow-x: auto; font-size: 0.9rem; line-height: 1.55; border: 1px solid var(--border); }
 pre code { background: none; padding: 0; font-size: inherit; }
-/* Syntax colours, set by assets/highlight.js. Each clears 4.5:1 on --code-bg; comments also read as italic. */
+/* Syntax colors, set by assets/highlight.js. Each clears 4.5:1 on --code-bg; comments also read as italic. Printing
+   and prefers-contrast: more drop them for the text color, as that mode does for --muted. */
 .tok-keyword { color: var(--tok-keyword); }
 .tok-string { color: var(--tok-string); }
 .tok-comment { color: var(--tok-comment); font-style: italic; }
@@ -85,7 +86,7 @@ pre code { background: none; padding: 0; font-size: inherit; }
 .tok-function { color: var(--tok-function); }
 .tok-type { color: var(--tok-type); }
 .tok-punctuation { color: var(--tok-keyword); }
-@media print { [class^="tok-"] { color: inherit; } }
+@media print, (prefers-contrast: more) { [class^="tok-"] { color: inherit; } }
 .note { border-left: 4px solid var(--accent); background: var(--mark); padding: 0.75rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
 .note > :last-child { margin-bottom: 0; }
 table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }

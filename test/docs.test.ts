@@ -101,7 +101,7 @@ test('every code block wraps at 60 columns, so none is clipped', () => {
   assert.deepEqual(wide, []);
 });
 
-test('every code block names its language, so the JavaScript and TypeScript ones are coloured', () => {
+test('every code block names its language, so the JavaScript and TypeScript ones are colored', () => {
   const unnamed: string[] = [];
   for (const page of pages) {
     for (const [, open] of html(page).matchAll(/<pre[^>]*>(<code[^>]*>)/g)) {
@@ -111,7 +111,7 @@ test('every code block names its language, so the JavaScript and TypeScript ones
   assert.deepEqual(unnamed, []);
 });
 
-test('the API signatures are coloured as TypeScript, and hold only text for the highlighter to rewrite', () => {
+test('the API signatures are colored as TypeScript, and hold only text for the highlighter to rewrite', () => {
   const s = html('api.html');
   const lists = [...s.matchAll(/<dl class="([^"]+)">([\s\S]*?)<\/dl>/g)];
   assert.ok(lists.length >= 5, 'found the member lists');
@@ -125,9 +125,12 @@ test('highlighting keeps every character and tells keywords, strings, comments, 
   const { tokenize } = await import(new URL('assets/highlight.js', docs).href);
   type Run = [string | null, string];
   for (const page of pages) {
-    for (const [, lang, body] of html(page).matchAll(/<code class="language-(js|ts)">([\s\S]*?)<\/code>/g)) {
+    const blocks = [...html(page).matchAll(/<code class="language-(?:js|ts)">([\s\S]*?)<\/code>/g)];
+    const lists = [...html(page).matchAll(/<dl class="[^"]*language-ts[^"]*">([\s\S]*?)<\/dl>/g)];
+    const signatures = lists.flatMap(([, list]) => [...list.matchAll(/<dt>([\s\S]*?)<\/dt>/g)]);
+    for (const [, body] of [...blocks, ...signatures]) {
       const text = unescape(body);
-      assert.equal((tokenize(text) as Run[]).map(([, t]) => t).join(''), text, `${page}: a ${lang} block`);
+      assert.equal((tokenize(text) as Run[]).map(([, t]) => t).join(''), text, `${page}: ${text.split('\n')[0]}`);
     }
   }
   const runs = (tokenize("// hi\nconst s = new Store(`${n} of ${fmt(t)}`, 'x', 3, true);") as Run[])
