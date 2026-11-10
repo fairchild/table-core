@@ -7,7 +7,7 @@ export interface ServerRowsRequest {
   /** The previous page's `nextCursor` (load-more mode), for cursor-paged servers. */
   cursor?: string;
   limit: number;
-  /** Aborted when the request is out of date (the view or page changed) or the table unmounts. */
+  /** Aborted when the request is out of date (the view or page changed) or the store is stopped. */
   signal: AbortSignal;
 }
 /**
@@ -60,7 +60,7 @@ export interface ServerRowsConfig<Row> {
    * prove the rows before them, so a count above the unbroken rows is exact and clamps the page.
    */
   fetchCount?: (request: ServerCountRequest) => Promise<number>;
-  /** Rows per request. Default 50: mounting or sorting 500 rows costs 100–300 ms on a mid-range tablet. */
+  /** Rows per request. Default 50: rendering or sorting 500 rows costs 100–300 ms on a mid-range tablet. */
   pageSize?: number;
   /** `'load-more'` appends pages, and `'pages'` shows one page at a time. Default `'load-more'`. */
   mode?: 'load-more' | 'pages';
@@ -146,10 +146,11 @@ function withDefaults<Row>(c: ServerRowsConfig<Row>): Config<Row> {
 }
 
 /**
- * The server-side row model, independent of React. One `sync()` reconciles what is wanted with what is cached and
- * in flight: it aborts requests that are out of date, starts the one that is due and asks for the exact count.
+ * The server-side row model, independent of any UI framework. One `sync()` reconciles what is wanted with what is
+ * cached and in flight: it aborts requests that are out of date, starts the one that is due and asks for the exact
+ * count.
  *
- * A *visit* is one stay on a view and page: it starts on mount, on a new view or page size, on a page change and on
+ * A *visit* is one stay on a view and page: it starts on `start()`, on a new view or page size, on a page change and on
  * reload. Within a visit nothing is retried by itself (a failed page waits for `retry()`, a failed count for the next
  * visit), and what is on screen is checked for staleness once, when the visit starts. A new visit starts afresh.
  */
@@ -188,12 +189,12 @@ export class ServerRowsStore<Row> {
     this.snap = this.compute();
   }
 
-  // ---- React glue -------------------------------------------------------------------------------------------------
+  // ---- Subscription -------------------------------------------------------------------------------------------------
   subscribe = (fn: () => void) => { this.listeners.add(fn); return () => { this.listeners.delete(fn); }; };
   getSnapshot = () => this.snap;
-  /** Start fetching (on mount): a new visit. */
+  /** Start fetching, as when the table appears: a new visit. */
   start = () => { this.active = true; this.newVisit(); this.sync(); };
-  /** Abort everything in flight (on unmount). The cache is kept for a StrictMode or Activity remount. */
+  /** Abort everything in flight, as when the table goes away. The cache is kept for a later `start()`. */
   stop = () => { this.active = false; this.abortAll(); this.emit(); };
 
   /**

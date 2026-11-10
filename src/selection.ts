@@ -44,8 +44,3 @@ export function selectionCount(selection: Selection, total: Total | undefined, s
   if (total == null) return Math.max(0, shown - n);
   return typeof total === 'number' ? Math.max(0, total - n) : { atLeast: Math.max(0, total.atLeast - n) };
 }
-
-/** The number a total promises at least: itself, or its lower bound. */
-export function lowerBound(total: Total | undefined): number | undefined {
-  return total == null ? undefined : typeof total === 'number' ? total : total.atLeast;
-}
