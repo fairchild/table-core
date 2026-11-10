@@ -15,6 +15,7 @@
   <meta property="og:image:alt" content="@fairchild/table-core: loads table rows from a server one page at a time and keeps the count right.">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="stylesheet" href="assets/style.css">
+  <script type="module" src="assets/highlight.js"></script>
   <script type="module" src="assets/copy.js"></script>
 </head>
 <body>
@@ -74,10 +75,10 @@
       <p class="lede">How to connect the store to your server and your UI. It covers what your server should return, what the store gives back and how counts, failures and selection work.</p>
 
       <h2 id="quick-start">Quick start</h2>
-      <pre tabindex="0"><code>npm install @fairchild/table-core</code></pre>
+      <pre tabindex="0"><code class="language-sh">npm install @fairchild/table-core</code></pre>
       <p>The package needs only <code>AbortController</code> and <code>DOMException</code>, which every browser and Node.js provide. To type-check against it, include the DOM library or <code>@types/node</code>.</p>
       <p>Below is a complete client. It is <a href="examples/client.js"><code>examples/client.js</code></a>, which the docs test runs against <a href="examples/server.js">a pretend server</a> and the <a href="./#try">live demo</a> is built on. Your server answers two URLs:</p>
-      <pre tabindex="0"><code>GET /api/items?sort=due&amp;dir=ascending
+      <pre tabindex="0"><code class="language-text">GET /api/items?sort=due&amp;dir=ascending
               &amp;offset=0&amp;limit=50
 → { rows: Item[],
     total?: number | { atLeast: number },
@@ -85,7 +86,7 @@
 
 GET /api/items/count?sort=due&amp;dir=ascending
 → 310   (a plain number)</code></pre>
-      <pre tabindex="0" data-source="examples/client.js"><code>// A complete client: a store for /api/items, the
+      <pre tabindex="0" data-source="examples/client.js"><code class="language-js">// A complete client: a store for /api/items, the
 // query string it sends, and the count it shows.
 // test/docs.test.ts runs this file against server.js,
 // and the live demo on the landing page is built on it.
@@ -175,7 +176,7 @@ export function countText({ rows, total }) {
   return `${shown} of ${fmt(total.atLeast)}+ items`;
 }</code></pre>
       <p>Then render the snapshot whenever it changes, start the store when the table appears and stop it when the table goes away. Load more is a button: <code>loadMore()</code> asks for the next page only once the current one has arrived, so calling it straight after <code>start()</code> does nothing.</p>
-      <pre tabindex="0"><code>import { createItemsStore, countText }
+      <pre tabindex="0"><code class="language-js">import { createItemsStore, countText }
   from './client.js';
 
 const { store, sortBy } = createItemsStore();
@@ -289,13 +290,13 @@ store.stop();</code></pre>
 
       <h2 id="selection">Selection</h2>
       <p>A selection is one value, whichever way it was made:</p>
-      <pre tabindex="0"><code>type Selection =
+      <pre tabindex="0"><code class="language-ts">type Selection =
   // these rows
   | { kind: 'ids'; ids: ReadonlySet&lt;string&gt; }
   // every row in the view, except these
   | { kind: 'all-matching'; except: ReadonlySet&lt;string&gt; };</code></pre>
       <p>The helpers are pure functions, so they work with any state library:</p>
-      <pre tabindex="0"><code>import {
+      <pre tabindex="0"><code class="language-ts">import {
   setSelected, isSelected, selectionCount,
   removeFromSelection, type Selection,
 } from '@fairchild/table-core';
@@ -322,7 +323,7 @@ store.reload();</code></pre>
 
       <h2 id="react">Using it from React</h2>
       <p>The store follows React's external-store contract, so a hook is a few lines:</p>
-      <pre tabindex="0"><code>function useServerRows(options) {
+      <pre tabindex="0"><code class="language-js">function useServerRows(options) {
   const [store] = useState(
     () =&gt; new ServerRowsStore(options),
   );
@@ -343,7 +344,7 @@ store.reload();</code></pre>
 
       <h2 id="testing">Testing your integration</h2>
       <p>Give the store a clock (<code>now</code>) and fetchers that return promises you settle yourself. The order of events is then exact, with no timers:</p>
-      <pre tabindex="0"><code>let clock = 0;
+      <pre tabindex="0"><code class="language-js">let clock = 0;
 const pending = [];
 const store = new ServerRowsStore({
   view: { sort: [] },

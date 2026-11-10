@@ -101,6 +101,34 @@ test('every code block wraps at 60 columns, so none is clipped', () => {
   assert.deepEqual(wide, []);
 });
 
+test('every code block names its language, so the JavaScript and TypeScript ones are coloured', () => {
+  const unnamed: string[] = [];
+  for (const page of pages) {
+    for (const [, open] of html(page).matchAll(/<pre[^>]*>(<code[^>]*>)/g)) {
+      if (!/^<code class="language-(js|ts|sh|text)">$/.test(open)) unnamed.push(`${page}: ${open}`);
+    }
+  }
+  assert.deepEqual(unnamed, []);
+});
+
+test('highlighting keeps every character and tells keywords, strings, comments, calls and types apart', async () => {
+  const { tokenize } = await import(new URL('assets/highlight.js', docs).href);
+  type Run = [string | null, string];
+  for (const page of pages) {
+    for (const [, lang, body] of html(page).matchAll(/<code class="language-(js|ts)">([\s\S]*?)<\/code>/g)) {
+      const text = unescape(body);
+      assert.equal((tokenize(text) as Run[]).map(([, t]) => t).join(''), text, `${page}: a ${lang} block`);
+    }
+  }
+  const runs = (tokenize("// hi\nconst s = new Store(`${n} of ${fmt(t)}`, 'x', 3, true);") as Run[])
+    .filter(([kind]) => kind);
+  assert.deepEqual(runs, [
+    ['comment', '// hi'], ['keyword', 'const'], ['keyword', 'new'], ['type', 'Store'], ['string', '`'],
+    ['punctuation', '${'], ['punctuation', '}'], ['string', ' of '], ['punctuation', '${'], ['function', 'fmt'],
+    ['punctuation', '}'], ['string', '`'], ['string', "'x'"], ['literal', '3'], ['literal', 'true'],
+  ]);
+});
+
 test('a block that shows an example file shows all of it, as it is', () => {
   let shown = 0;
   for (const page of pages) {
