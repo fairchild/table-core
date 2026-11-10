@@ -37,14 +37,14 @@ hand; when a tag's version is already on npm, the workflow skips the publish and
 
 ## Docs
 
-`docs/` is the documentation site: plain HTML and CSS, no build step. GitHub Pages publishes it from the `main`
-branch's `/docs` folder (Settings → Pages → Deploy from a branch). `test/docs.test.ts` keeps it in step with the code:
+`docs/` is the documentation site: plain HTML and CSS, no build step. GitHub Pages publishes it through
+`.github/workflows/pages.yml`, below. `test/docs.test.ts` keeps it in step with the code:
 every export has an entry in the API reference, and every link between pages resolves.
 
 The landing page's live demo runs on the built package: `npm run docs` copies `dist/` to `docs/vendor/` (git-ignored),
-and `npm run docs:serve` serves the site at http://localhost:4321. Without `docs/vendor/`, as when Pages publishes the
-folder straight from the branch, the page shows a static sample instead.
+and `npm run docs:serve` serves the site at http://localhost:4321. Without `docs/vendor/`, the page shows a static
+sample instead.
 
 `.github/workflows/pages.yml` publishes the site with the demo working: it runs `npm test` and `npm run docs`, then
-deploys `docs/`. It runs only by hand (Actions → Pages → Run workflow), and needs Settings → Pages → Source set to
-"GitHub Actions" first.
+deploys `docs/`. It runs on a push to `main` that changes `docs/`, `src/` or `package.json`, and
+by hand (Actions → Pages → Run workflow). It needs Settings → Pages → Source set to "GitHub Actions".
