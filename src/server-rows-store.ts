@@ -70,6 +70,12 @@ export interface ServerRowsConfig<Row> {
    * go missing at page boundaries. Return `nextCursor` (keyset paging) when the data changes often.
    */
   staleAfter?: number;
+  /**
+   * How many views keep their pages, counting the one on screen. A view here is a sort, filter and page size. Past
+   * this, the view shown longest ago leaves the cache and is fetched again when it comes back. Default 20; `Infinity`
+   * keeps every view.
+   */
+  maxViews?: number;
   /** Clock, for tests. Default `Date.now`. */
   now?: () => number;
 }
@@ -142,6 +148,8 @@ function withDefaults<Row>(c: ServerRowsConfig<Row>): Config<Row> {
   return {
     view: c.view, fetchRows: c.fetchRows, fetchCount: c.fetchCount,
     pageSize: c.pageSize ?? 50, mode: c.mode ?? 'load-more', staleAfter: c.staleAfter ?? 30_000, now: c.now ?? Date.now,
+    // Below 1, or NaN, still keeps the view on screen.
+    maxViews: c.maxViews == null ? 20 : c.maxViews >= 1 ? c.maxViews : 1,
   };
 }
 
@@ -291,6 +299,17 @@ export class ServerRowsStore<Row> {
     if (!e) this.cache.set(key, (e = { pages: [] }));
     return e;
   }
+  /** The view on screen is the one used last. Past `maxViews`, the views shown longest ago leave the cache. */
+  private current() {
+    const e = this.entry();
+    this.cache.delete(this.key);
+    this.cache.set(this.key, e);
+    for (const key of this.cache.keys()) {
+      if (this.cache.size <= this.cfg.maxViews) break;
+      this.cache.delete(key);
+    }
+    return e;
+  }
   private stale(page: Page<Row>) {
     return page.invalid || this.cfg.now() - page.at >= this.cfg.staleAfter;
   }
@@ -353,7 +372,7 @@ export class ServerRowsStore<Row> {
       const keep = new Set(wanted.map((p) => `${this.key}#${p}`));
       for (const [k, c] of this.inflight) if (!keep.has(k)) { c.abort(); this.inflight.delete(k); }
       for (const [k, c] of this.counting) if (k !== this.key) { c.abort(); this.counting.delete(k); }
-      const e = this.entry();
+      const e = this.current();
       if (this.cfg.mode === 'load-more') this.syncChain(e, wanted.length);
       else this.syncPage(e, this.pos.page);
       // Once per visit, ask `fetchCount` for a total that is only a lower bound, for a count that came from it and is
@@ -502,9 +521,10 @@ export class ServerRowsStore<Row> {
       .then((n) => {
         // A count is a number. Anything else (`{ count }`, an error body) is a failed count.
         if (typeof n !== 'number' || !Number.isFinite(n) || n < 0) throw new Error('The count is not a number.');
+        if (ctrl.signal.aborted) return; // before `entry()`, which would put back a view that has left the cache
         const e = this.entry(key);
         // A total learned since the count was asked (from a page) is newer: keep it.
-        if (ctrl.signal.aborted || (e.exactSeq ?? -Infinity) >= asked) return;
+        if ((e.exactSeq ?? -Infinity) >= asked) return;
         // Rows win, as over a page's total, but only rows held without a gap from the first row overrule a count: rows
         // past a gap (a deep link) leave the rows before them unproven. The bound is then the furthest rows held.
         const trusted = this.trusted(e);

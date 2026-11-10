@@ -125,6 +125,7 @@
           <tr><td><code>pageSize</code></td><td><code>50</code></td><td>Rows per request. Part of a page's identity: a new size starts over.</td></tr>
           <tr><td><code>mode</code></td><td><code>'load-more'</code></td><td><code>'load-more'</code> appends pages, chaining cursors. <code>'pages'</code> shows one page at a time, by offset.</td></tr>
           <tr><td><code>staleAfter</code></td><td><code>30000</code></td><td>Milliseconds. Cached pages, and a count, older than this are fetched again when they come back on screen.</td></tr>
+          <tr><td><code>maxViews</code></td><td><code>20</code></td><td>How many views keep their pages, counting the one on screen. A view here is a sort, filter and page size. Past this, the view shown longest ago leaves the cache and is fetched again when it comes back. <code>Infinity</code> keeps every view.</td></tr>
           <tr><td><code>now</code></td><td><code>Date.now</code></td><td>The clock, for tests.</td></tr>
         </tbody>
       </table>
