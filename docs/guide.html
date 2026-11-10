@@ -21,7 +21,7 @@
   <a class="skip" href="#main">Skip to content</a>
   <header class="site-header">
     <div class="inner">
-      <a class="brand" href="./">@fairchild/table-core <span>by Lede</span></a>
+      <a class="brand" href="./">@fairchild/table-core</a>
       <nav class="site-nav" aria-label="Documentation">
         <ul>
           <li><a href="./">Overview</a></li>
@@ -248,7 +248,7 @@ store.stop();</code></pre>
         </tbody>
       </table>
 </div>
-      <p>How Lede's data table renders them, as a starting point:</p>
+      <p>One way to render them, as a starting point:</p>
       <ul>
         <li><strong>Skeleton rows:</strong> <code>rows === 'none'</code>, fetching, no failure.</li>
         <li><strong>Busy</strong> (<code>aria-busy</code>): fetching while the rows on screen aren't this view's.</li>
@@ -321,7 +321,7 @@ store.reload();</code></pre>
       <p>To act on a selection, send it to your server as it is. “Select all” goes as the view and its exceptions, <code>{ view, except }</code>, so the action reaches rows that were never loaded. The quick start's <code>archive()</code> does this. Clear the selection when the view's filter changes, so an action never reaches rows that aren't shown.</p>
 
       <h2 id="react">Using it from React</h2>
-      <p>The store follows React's external-store contract, so a hook is a few lines. Lede's own <code>useServerRows</code> works like this:</p>
+      <p>The store follows React's external-store contract, so a hook is a few lines:</p>
       <pre tabindex="0"><code>function useServerRows(options) {
   const [store] = useState(
     () =&gt; new ServerRowsStore(options),

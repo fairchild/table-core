@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>@fairchild/table-core</title>
-  <meta name="description" content="Loads table rows from a server one page at a time and keeps the count right, with helpers for selection. The framework-free part of Lede's data table.">
+  <meta name="description" content="Loads table rows from a server one page at a time and keeps the count right, with helpers for selection. It runs in any framework or in Node.">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="canonical" href="https://fairchild.github.io/table-core/">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://fairchild.github.io/table-core/">
   <meta property="og:title" content="@fairchild/table-core">
-  <meta property="og:description" content="Loads table rows from a server one page at a time and keeps the count right, with helpers for selection. The framework-free part of Lede's data table.">
+  <meta property="og:description" content="Loads table rows from a server one page at a time and keeps the count right, with helpers for selection. It runs in any framework or in Node.">
   <meta property="og:image" content="https://fairchild.github.io/table-core/assets/og.png">
   <meta property="og:image:alt" content="@fairchild/table-core: loads table rows from a server one page at a time and keeps the count right.">
   <meta name="twitter:card" content="summary_large_image">
@@ -23,7 +23,7 @@
   <a class="skip" href="#main">Skip to content</a>
   <header class="site-header">
     <div class="inner">
-      <a class="brand" href="./">@fairchild/table-core <span>by Lede</span></a>
+      <a class="brand" href="./">@fairchild/table-core</a>
       <nav class="site-nav" aria-label="Documentation">
         <ul>
           <li><a href="./" aria-current="page">Overview</a></li>
@@ -40,12 +40,10 @@
       <h1 id="title">@fairchild/table-core</h1>
       <p class="lede">
         Loads table rows from a server one page at a time and keeps the count right, with helpers for a selection. It
-        is the part of <a href="https://lede.cloudcompute.com/">Lede</a>'s data table that doesn't depend on React or
-        the DOM, so you can use it from any framework or from Node.
+        doesn't depend on React or the DOM, so you can use it from any framework or from Node.
       </p>
       <p>
-        It has no columns, no rendering and no virtualization. You render the rows yourself, or use Lede's
-        <a href="https://lede.cloudcompute.com/blocks/data-table">DataTable</a>, which is built on the same store.
+        It has no columns, no rendering and no virtualization. You render the rows yourself.
       </p>
       <div class="install">
         <pre tabindex="0" aria-label="Install command"><code>npm install @fairchild/table-core</code></pre>
@@ -139,7 +137,7 @@
           <h3>Use it when</h3>
           <ul>
             <li>your rows live on a server and come a page at a time;</li>
-            <li>you render the table yourself, or with Lede's <a href="https://lede.cloudcompute.com/blocks/data-table">DataTable</a>;</li>
+            <li>you render the table yourself;</li>
             <li>you want a correct count, cancellation and failures without writing them.</li>
           </ul>
         </div>
@@ -197,7 +195,7 @@
         </li>
         <li class="card">
           <h3>Has no dependencies</h3>
-          <p>Plain TypeScript. Subscribe to changes and read a snapshot; Lede's React hook is a few lines on top.</p>
+          <p>Plain TypeScript. Subscribe to changes and read a snapshot; a React hook is a few lines on top.</p>
         </li>
       </ul>
     </section>
@@ -207,7 +205,6 @@
   <footer class="site-footer">
     <div class="inner">
       <span>@fairchild/table-core · MIT license</span>
-      <span>Part of Lede.</span>
     </div>
   </footer>
 </body>
