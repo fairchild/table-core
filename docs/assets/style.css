@@ -2,6 +2,8 @@
 :root {
   --bg: #fbfbfd; --surface: #ffffff; --text: #1d1d1f; --muted: #5d5d63; --border: #e3e3e8;
   --accent: #0a5bd8; --accent-ink: #ffffff; --code-bg: #f2f3f7; --code-text: #1d1d1f; --mark: #e8f0fe;
+  --tok-keyword: #b4134a; --tok-string: #17733a; --tok-comment: #62626b; --tok-literal: #0a5bd8;
+  --tok-function: #7034c4; --tok-type: #9a4a00;
   --radius: 12px; --measure: 46rem;
   --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
@@ -11,6 +13,8 @@
   :root {
     --bg: #111114; --surface: #1a1a1f; --text: #f2f2f5; --muted: #a8a8b3; --border: #2e2e36;
     --accent: #7fb0ff; --accent-ink: #0b1220; --code-bg: #1f2027; --code-text: #e9e9ef; --mark: #1d2a44;
+    --tok-keyword: #ff8eb0; --tok-string: #8fd694; --tok-comment: #9b9ba8; --tok-literal: #86b8ff;
+    --tok-function: #d0a9ff; --tok-type: #ffb36b;
   }
 }
 @media (prefers-contrast: more) { :root { --muted: var(--text); --border: var(--text); } }
@@ -73,6 +77,15 @@ li { margin: 0.25rem 0; }
 code { font-family: var(--mono); font-size: 0.88em; background: var(--code-bg); color: var(--code-text); padding: 0.1em 0.35em; border-radius: 5px; }
 pre { background: var(--code-bg); color: var(--code-text); padding: 1rem 1.1rem; border-radius: var(--radius); overflow-x: auto; font-size: 0.9rem; line-height: 1.55; border: 1px solid var(--border); }
 pre code { background: none; padding: 0; font-size: inherit; }
+/* Syntax colours, set by assets/highlight.js. Each clears 4.5:1 on --code-bg; comments also read as italic. */
+.tok-keyword { color: var(--tok-keyword); }
+.tok-string { color: var(--tok-string); }
+.tok-comment { color: var(--tok-comment); font-style: italic; }
+.tok-literal { color: var(--tok-literal); }
+.tok-function { color: var(--tok-function); }
+.tok-type { color: var(--tok-type); }
+.tok-punctuation { color: var(--tok-keyword); }
+@media print { [class^="tok-"] { color: inherit; } }
 .note { border-left: 4px solid var(--accent); background: var(--mark); padding: 0.75rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
 .note > :last-child { margin-bottom: 0; }
 table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }

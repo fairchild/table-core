@@ -54,6 +54,9 @@ hand; when a tag's version is already on npm, the workflow skips the publish and
 `.github/workflows/pages.yml`, below. `test/docs.test.ts` keeps it in step with the code:
 every export has an entry in the API reference, and every link between pages resolves.
 
+A code block names its language: `<pre><code class="language-ts">`, with `js`, `ts`, `sh` or `text`.
+`docs/assets/highlight.js` colours the `js` and `ts` ones in the browser; the docs test fails on a block without one.
+
 The landing page's live demo runs on the built package: `npm run docs` copies `dist/` to `docs/vendor/` (git-ignored),
 and `npm run docs:serve` serves the site at http://localhost:4321. Without `docs/vendor/`, the page shows a static
 sample instead.

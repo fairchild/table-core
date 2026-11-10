@@ -15,6 +15,7 @@
   <meta property="og:image:alt" content="@fairchild/table-core: loads table rows from a server one page at a time and keeps the count right.">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="stylesheet" href="assets/style.css">
+  <script type="module" src="assets/highlight.js"></script>
   <script type="module" src="assets/copy.js"></script>
 </head>
 <body>
@@ -91,7 +92,7 @@
 
       <h2 id="ServerRowsStore"><code>ServerRowsStore&lt;Row&gt;</code></h2>
       <p>The server-side row model. Create one per table, connect it to your UI with <code>subscribe</code> and <code>getSnapshot</code>, and drive it with its commands. The commands are bound functions, so they can be passed around as they are.</p>
-      <pre tabindex="0"><code>new ServerRowsStore&lt;Row&gt;(config: ServerRowsConfig&lt;Row&gt;)</code></pre>
+      <pre tabindex="0"><code class="language-ts">new ServerRowsStore&lt;Row&gt;(config: ServerRowsConfig&lt;Row&gt;)</code></pre>
       <dl class="api">
         <dt>subscribe(listener: () =&gt; void): () =&gt; void</dt>
         <dd>Call <code>listener</code> whenever the snapshot changes. Returns the unsubscribe function.</dd>
@@ -163,7 +164,7 @@
       <p>The cache identity of a page: everything that changes which rows a page holds. Useful if you keep your own cache alongside the store's.</p>
 
       <h2 id="TableState"><code>TableState</code></h2>
-      <pre tabindex="0"><code>interface TableState {
+      <pre tabindex="0"><code class="language-ts">interface TableState {
   rows?: 'current' | 'previous' | 'none';
   fetching?: boolean;
   since?: Date;
@@ -176,37 +177,37 @@
       <p>Independent facts. The store always sets <code>rows</code> and <code>fetching</code>: settled rows of the current view are <code>{ rows: 'current', fetching: false, since }</code>. The fields are optional for a table that has its own rows, where <code>{}</code> means the same. See <a href="guide.html#state">reading the state</a>.</p>
 
       <h2 id="TableView"><code>TableView</code></h2>
-      <pre tabindex="0"><code>type TableView = {
+      <pre tabindex="0"><code class="language-ts">type TableView = {
   sort: SortItem[]; // length 0 or 1 in version 1
   filter?: TableFilter;
 };</code></pre>
       <p>Everything a saved view stores. Later versions add optional keys. Until 1.0, a minor version may rename or remove one; the <a href="https://github.com/fairchild/table-core/blob/main/CHANGELOG.md">CHANGELOG</a> says what to change.</p>
       <h3 id="SortItem"><code>SortItem</code></h3>
-      <pre tabindex="0"><code>type SortItem = {
+      <pre tabindex="0"><code class="language-ts">type SortItem = {
   columnId: string;
   direction: SortDirection;
 };</code></pre>
       <h3 id="SortDirection"><code>SortDirection</code></h3>
-      <pre tabindex="0"><code>// The same words as aria-sort.
+      <pre tabindex="0"><code class="language-ts">// The same words as aria-sort.
 type SortDirection = 'ascending' | 'descending';</code></pre>
 
       <h2 id="Total"><code>Total</code></h2>
-      <pre tabindex="0"><code>type Total = number | { atLeast: number };</code></pre>
+      <pre tabindex="0"><code class="language-ts">type Total = number | { atLeast: number };</code></pre>
       <p>A count, or a lower bound while the exact figure is computed (“50 of 1,000+”).</p>
 
       <h3 id="TableFilter"><code>TableFilter</code></h3>
-      <pre tabindex="0"><code>type TableFilter = {
+      <pre tabindex="0"><code class="language-ts">type TableFilter = {
   readonly [key: string]: FilterValue | undefined;
 };</code></pre>
       <p>Your own keys and values: a search term, a status. The store doesn't read them; it sends them to your fetchers in <code>view</code> and keys its cache by them, so a new filter starts at the first page. Put a search term here, not in a closure in <code>fetchRows</code>.</p>
       <h3 id="FilterValue"><code>FilterValue</code></h3>
-      <pre tabindex="0"><code>type FilterValue =
+      <pre tabindex="0"><code class="language-ts">type FilterValue =
   | string | number | boolean | null
   | readonly (string | number | boolean | null)[];</code></pre>
       <p>Plain JSON, so a view can be saved and put in a URL.</p>
 
       <h2 id="Selection"><code>Selection</code></h2>
-      <pre tabindex="0"><code>type Selection =
+      <pre tabindex="0"><code class="language-ts">type Selection =
   | { kind: 'ids'; ids: ReadonlySet&lt;string&gt; }
   | { kind: 'all-matching'; except: ReadonlySet&lt;string&gt; };</code></pre>
       <p>These rows, or every row matching the view except these. See <a href="guide.html#selection">selection</a>.</p>
