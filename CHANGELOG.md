@@ -31,4 +31,6 @@ First release.
 - A page with `nextCursor: null` ends the list and settles the count at the rows through it, unless its own
   `{ atLeast }` is above them.
 - A failed refresh keeps the rows on screen, with their age and their count.
+- Before the first `start()`, the snapshot is `{ rows: 'none', fetching: true }`: the rows are coming, so a table
+  rendered before it starts shows loading rather than an empty list. After `stop()`, `fetching` is false.
 - In pages mode a deep link past the end finds the last page by halving, in a few requests.

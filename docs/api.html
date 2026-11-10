@@ -98,9 +98,9 @@
         <dt>getSnapshot(): ServerRowsSnapshot&lt;Row&gt;</dt>
         <dd>The current <a href="#ServerRowsSnapshot">snapshot</a>. The same object until something changes.</dd>
         <dt>start(): void</dt>
-        <dd>Begin fetching, when the table appears. Starts a visit.</dd>
+        <dd>Begin fetching, when the table appears. Starts a visit. Until the first <code>start()</code>, the snapshot reports <code>fetching</code>: its rows are coming.</dd>
         <dt>stop(): void</dt>
-        <dd>Abort everything in flight, when the table goes away. The cache is kept, so a later <code>start()</code> shows cached rows at once.</dd>
+        <dd>Abort everything in flight, when the table goes away, so <code>fetching</code> is false. The cache is kept, so a later <code>start()</code> shows cached rows at once.</dd>
         <dt>update(config: ServerRowsConfig&lt;Row&gt;): void</dt>
         <dd>New options, all of them: an option left out goes back to its default, except <code>now</code>, which keeps the store's clock. Fetchers are always replaced. A new view, page size or mode starts a visit on its own cache entry. Calling it with an unchanged view is cheap and changes nothing on screen.</dd>
         <dt>loadMore(): void</dt>

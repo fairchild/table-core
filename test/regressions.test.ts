@@ -64,6 +64,15 @@ test('stop() ends fetching in the snapshot, and tells subscribers', async () => 
   assert.equal(told, 1);
 });
 
+test('before the first start() the snapshot says rows are coming, not that there are none', async () => {
+  for (const mode of ['load-more', 'pages'] as const) {
+    const store = new ServerRowsStore<Row>({ view: { sort: [] }, pageSize: 2, mode, fetchRows: () => new Promise(() => {}) });
+    assert.deepEqual(store.getSnapshot().state, { rows: 'none', fetching: true }, mode);
+    store.start(); store.stop();
+    assert.equal(store.getSnapshot().state.fetching, false, `${mode}: fetching after stop()`);
+  }
+});
+
 test('a reload asks for a new count when the count came from a page and the fresh page gives only a lower bound', async () => {
   const t = setup({ mode: 'pages' });
   t.reqs[0].resolve({ rows: rows(0, 2), total: { atLeast: 2 } }); await flush();

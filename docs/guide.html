@@ -242,7 +242,7 @@ store.stop();</code></pre>
         <thead><tr><th scope="col">Field</th><th scope="col">Values</th><th scope="col">Meaning</th></tr></thead>
         <tbody>
           <tr><td><code>rows</code></td><td><code>'current'</code> · <code>'previous'</code> · <code>'none'</code></td><td>Whose rows are on screen: this view's, the last view's (kept while the new one loads, so the layout doesn't jump), or nothing yet.</td></tr>
-          <tr><td><code>fetching</code></td><td>boolean</td><td>Rows are on the way.</td></tr>
+          <tr><td><code>fetching</code></td><td>boolean</td><td>Rows are on the way. Before the first <code>start()</code> too, so a table that renders first never shows an empty list. After <code>stop()</code>, false.</td></tr>
           <tr><td><code>since</code></td><td><code>Date</code></td><td>When the rows on screen were fetched.</td></tr>
           <tr><td><code>failure</code></td><td><code>{ message?, retry, scope }</code></td><td>What failed. <code>scope</code> is <code>'load'</code> (this view's rows), <code>'refresh'</code> (rows already on screen) or <code>'more'</code> (the next page).</td></tr>
         </tbody>

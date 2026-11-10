@@ -178,6 +178,8 @@ export class ServerRowsStore<Row> {
   private previous: { rows: readonly Row[]; total?: Total; at?: number } = { rows: EMPTY };
   private rowsMemo: { pages: Array<Page<Row>>; rows: readonly Row[] } = { pages: [], rows: EMPTY };
   private active = false;
+  /** Stopped since the last `start()`. Before the first one, rows are still coming. */
+  private stopped = false;
   /** Orders page arrivals and recounts (see `Page.seq`). */
   private seq = 0;
   private listeners = new Set<() => void>();
@@ -193,9 +195,9 @@ export class ServerRowsStore<Row> {
   subscribe = (fn: () => void) => { this.listeners.add(fn); return () => { this.listeners.delete(fn); }; };
   getSnapshot = () => this.snap;
   /** Start fetching, as when the table appears: a new visit. */
-  start = () => { this.active = true; this.newVisit(); this.sync(); };
-  /** Abort everything in flight, as when the table goes away. The cache is kept for a later `start()`. */
-  stop = () => { this.active = false; this.abortAll(); this.emit(); };
+  start = () => { this.active = true; this.stopped = false; this.newVisit(); this.sync(); };
+  /** Abort everything in flight, as when the table goes away: `fetching` is false. The cache is kept for a later `start()`. */
+  stop = () => { this.active = false; this.stopped = true; this.abortAll(); this.emit(); };
 
   /**
    * New options (all of them, as on every render): a new view, page size or mode starts a new visit. An option left out
@@ -612,9 +614,9 @@ export class ServerRowsStore<Row> {
     const rowsKind = current ? 'current' : this.previous.rows.length ? 'previous' : 'none';
     const rows = current ? this.currentRows(ready) : this.previous.rows;
     const since = current ? Math.min(...ready.map((p) => p.at)) : this.previous.at;
-    // Not everything wanted is here and nothing failed: on the way (or about to be, before the first sync).
+    // Not everything wanted is here and nothing failed: on the way, or about to be, before the first `start()` or sync.
     const missing = ready.length < wanted.length && (this.cfg.mode === 'pages' || this.continues(ready));
-    const state: TableState = { rows: rowsKind, fetching: fetching || (failedPage == null && missing && this.active) };
+    const state: TableState = { rows: rowsKind, fetching: fetching || (failedPage == null && missing && !this.stopped) };
     if (since != null) state.since = new Date(since);
     if (failedPage != null) {
       // A page that isn't on screen failed: the next page of a list (more), or this view's or page's rows (load).
